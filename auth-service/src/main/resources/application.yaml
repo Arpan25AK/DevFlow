@@ -1,3 +1,39 @@
+server:
+  port: 8081 # The Bouncer lives on port 8081
+
 spring:
   application:
     name: auth-service
+
+  # 1. Database Connection (Talking to your Docker container)
+  datasource:
+    url: jdbc:postgresql://localhost:5432/devflow_db
+    username: devflow
+    password: password
+    driver-class-name: org.postgresql.Driver
+
+  # 2. JPA/Hibernate (Auto-creates our database tables)
+  jpa:
+    hibernate:
+      ddl-auto: update # Automatically updates the database schema when we create Java classes
+    show-sql: true     # Prints the SQL queries in the console so you can see what it's doing
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# 3. Eureka Registration (Putting itself in the Phonebook)
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+# 4. Our Custom JWT Properties
+jwt:
+  # This is a secure 256-bit secret key used to mathematically sign our VIP passes.
+  # In a real company, this would be hidden in an environment variable!
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+  expiration: 86400000 # 1 day in milliseconds
