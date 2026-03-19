@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # 1. Relational Database (For Auth, Repositories, Code Reviews)
+  postgres:
+    image: postgres:15
+    container_name: devflow-postgres
+    environment:
+      POSTGRES_USER: devflow
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: devflow_db
+    ports:
+      - "5432:5432"
+    restart: always
+
+  # 2. NoSQL Database (For Real-Time Chat History)
+  mongodb:
+    image: mongo:6
+    container_name: devflow-mongodb
+    ports:
+      - "27017:27017"
+    restart: always
+
+  # 3. In-Memory Cache (For Rate Limiting, JWT Sessions, WebSocket scaling)
+  redis:
+    image: redis:7
+    container_name: devflow-redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  # 4. Message Broker Coordination
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.4
+    container_name: devflow-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  # 5. Event-Driven Message Broker (For Async Microservice Communication)
+  kafka:
+    image: confluentinc/cp-kafka:7.4.4
+    container_name: devflow-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1

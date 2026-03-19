@@ -1,0 +1,9 @@
+# IntelliJ / IDE Files
+.idea/
+*.iml
+*.iws
+
+# Build folders (for all sub-projects)
+**/target/
+**/build/
+.mvn/wrapper/maven-wrapper.jar
