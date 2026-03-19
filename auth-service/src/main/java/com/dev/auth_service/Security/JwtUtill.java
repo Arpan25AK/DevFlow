@@ -27,7 +27,7 @@ public class JwtUtill {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String generateTokken(String email, String role){
+    public String generateToken(String email, String role){
         Map<String, Object> claims = new HashMap<>();
         claims.put("role",role);
 
