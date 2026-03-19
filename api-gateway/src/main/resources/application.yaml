@@ -1,3 +1,29 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: api-gateway
+
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true # Allows Gateway to use Eureka to find services
+          lower-case-service-id: true
+
+      # Here is our Master Routing Map!
+      routes:
+        - id: auth-service-route
+          uri: lb://auth-service    # "lb://" stands for Load Balancer. It asks Eureka for the IP!
+          predicates:
+            - Path=/api/auth/** # Any URL starting with this gets sent to the Auth Service
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
