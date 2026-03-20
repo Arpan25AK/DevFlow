@@ -22,7 +22,7 @@ public class AuthService {
 
     public String registerUser(String email,String rawpassword){
 
-        if(userRepository.emailExists(email)) return new RuntimeException("user already found");
+        if(userRepository.emailExists(email)) throw new RuntimeException("user already found");
 
         String hashedPassword = passwordEncoder.encode(rawpassword);
 
