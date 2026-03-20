@@ -1,3 +1,41 @@
+server:
+  port: 8082 # The Vault lives on port 8082
+
 spring:
   application:
     name: repository-service
+
+  # 1. Database Connection (For Repository Metadata)
+  datasource:
+    url: jdbc:postgresql://localhost:5432/devflow_db
+    username: devflow
+    password: password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  # 2. Kafka Connection (The Megaphone)
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+# 3. Eureka Registration (Putting itself in the Phonebook)
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+# 4. MinIO Connection (The S3 Warehouse)
+minio:
+  url: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket-name: devflow-repos

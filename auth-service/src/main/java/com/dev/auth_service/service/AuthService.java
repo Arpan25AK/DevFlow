@@ -1,12 +1,10 @@
-package com.dev.auth_service.Service;
+package com.dev.auth_service.service;
 
-import com.dev.auth_service.Entity.User;
-import com.dev.auth_service.Repo.UserRepository;
-import com.dev.auth_service.Security.JwtUtill;
+import com.dev.auth_service.entity.User;
+import com.dev.auth_service.repo.UserRepository;
+import com.dev.auth_service.security.JwtUtill;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.security.PrivateKey;
 
 @Service
 public class AuthService {

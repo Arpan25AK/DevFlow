@@ -1,7 +1,6 @@
-package com.dev.auth_service.Controller;
+package com.dev.auth_service.controller;
 
-import com.dev.auth_service.Service.AuthService;
-import lombok.RequiredArgsConstructor;
+import com.dev.auth_service.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
