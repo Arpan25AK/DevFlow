@@ -17,8 +17,8 @@ public class JwtUtill {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.experationTime}")
-    private Long experationTime;
+    @Value("${jwt.expirationTime}")
+    private Long expirationTime;
 
     private Key key;
 
@@ -35,7 +35,7 @@ public class JwtUtill {
                 .setClaims(claims)
                 .setSubject(email)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + experationTime))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
