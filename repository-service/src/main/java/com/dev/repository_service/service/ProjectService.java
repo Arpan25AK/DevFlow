@@ -16,7 +16,7 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
 
     public Project createProject(String name, String ownerEmail, String description, boolean isPrivate){
-        log.info("checking if a repo already exists for user : ", name, ownerEmail);
+        log.info("checking if a repo already exists for user : {}/ {} ", name, ownerEmail);
 
         if(projectRepository.existsByOwnerEmailAndName(ownerEmail,name)){
             throw new RuntimeException("repo already exists for the user");
@@ -30,7 +30,7 @@ public class ProjectService {
                 build();
 
         Project savedProject = projectRepository.save(newProject);
-        log.info("a repo has be created for user: " , name, ownerEmail);
+        log.info("a repo has be created for user: {} / {}" , name, ownerEmail);
 
         return savedProject;
     }

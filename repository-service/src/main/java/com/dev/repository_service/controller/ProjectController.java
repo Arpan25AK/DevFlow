@@ -4,24 +4,22 @@ import com.dev.repository_service.entity.Project;
 import com.dev.repository_service.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("/api/repositories")
 @RequiredArgsConstructor
 public class ProjectController {
 
     private final ProjectService projectService;
 
-    public record createProjectRequest(String name, String ownerEmail, String description, boolean isPrivate);
+    public record CreateProjectRequest(String name, String ownerEmail, String description, boolean isPrivate){}
 
-    public ResponseEntity<Project> createRepository(@RequestBody createProjectRequest request){
-        String createdProject = projectService.createProject(
+    @PostMapping("/create")
+    public ResponseEntity<Project> createRepository(@RequestBody CreateProjectRequest request){
+        Project createdProject = projectService.createProject(
                 request.name(),
                 request.ownerEmail(),
                 request.description(),
