@@ -21,6 +21,11 @@ spring:
             predicates:
               - Path=/api/auth/** # Any URL starting with this gets sent to the Auth Service
 
+          - id: repository-service-route
+            uri: lb://repository-service
+            predicates:
+              - Path=/api/repositories/**
+
 eureka:
   instance:
     prefer-ip-address: true
