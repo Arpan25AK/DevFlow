@@ -40,6 +40,7 @@ public class ProjectService {
         return projectRepository.findByOwnerEmail(ownerEmail);
     }
 
+    // this method exists check if the user already has a repo
     public boolean userProjectExists(String ownerEmail, String name){
         return projectRepository.existsByOwnerEmailAndName(ownerEmail, name);
     }
