@@ -36,7 +36,7 @@ public class ProjectService {
     }
 
 
-    public List<Project> getUserProject(String ownerEmail, String name){
+    public List<Project> getUserProject(String ownerEmail){
         return projectRepository.findByOwnerEmail(ownerEmail);
     }
 
