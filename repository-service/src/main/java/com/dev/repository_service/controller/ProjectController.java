@@ -34,7 +34,7 @@ public class ProjectController {
     }
 
     @GetMapping("/repoexists/{ownerEmail}/{name}")
-    public ResponseEntity<Boolean> doesUserRepoExists(@PathVariable String ownerEmail, String name){
+    public ResponseEntity<Boolean> doesUserRepoExists(@PathVariable String ownerEmail, @PathVariable String name){
         return ResponseEntity.ok(projectService.userProjectExists(ownerEmail, name));
     }
 }
