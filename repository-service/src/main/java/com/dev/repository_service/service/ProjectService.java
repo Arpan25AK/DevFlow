@@ -5,6 +5,8 @@ import com.dev.repository_service.repo.ProjectRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.logging.Log;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,6 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ProjectService {
     private final ProjectRepository projectRepository;
+    private final KafkaProducerService producerService;
 
     public Project createProject(String name, String ownerEmail, String description, boolean isPrivate){
         log.info("checking if a repo already exists for user : {}/ {} ", name, ownerEmail);
@@ -31,7 +34,7 @@ public class ProjectService {
 
         Project savedProject = projectRepository.save(newProject);
         log.info("a repo has be created for user: {} / {}" , name, ownerEmail);
-
+        producerService.projectCreatedEvent(ownerEmail,name);
         return savedProject;
     }
 
