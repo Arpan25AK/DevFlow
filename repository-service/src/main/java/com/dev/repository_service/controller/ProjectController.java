@@ -28,8 +28,13 @@ public class ProjectController {
 
         return ResponseEntity.ok(createdProject);
     }
-    @PostMapping("/getrepos")
+    @GetMapping("/getrepos/{ownerEmail}")
     public ResponseEntity<List<Project>> getUserRepositories(@PathVariable String ownerEmail){
         return ResponseEntity.ok(projectService.getUserProject(ownerEmail));
+    }
+
+    @GetMapping("/repoexists/{ownerEmail}/{name}")
+    public ResponseEntity<Boolean> doesUserRepoExists(@PathVariable String ownerEmail, String name){
+        return ResponseEntity.ok(projectService.userProjectExists(ownerEmail, name));
     }
 }
