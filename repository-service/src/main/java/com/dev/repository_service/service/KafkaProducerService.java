@@ -3,7 +3,9 @@ package com.dev.repository_service.service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
 
+@Service
 @Slf4j
 @AllArgsConstructor
 public class KafkaProducerService {
@@ -14,7 +16,7 @@ public class KafkaProducerService {
 
         String message = String.format("{\"ownerEmail\":\"%s\", \"name\":\"%s\"}", ownerEmail, name);
 
-        kafkaTemplate.send("project - lifecycle",message);
+        kafkaTemplate.send("project-lifecycle",message);
 
         log.info("Alert ! broadcasted new project creation at kafka for {} / {} ", ownerEmail, name);
     }

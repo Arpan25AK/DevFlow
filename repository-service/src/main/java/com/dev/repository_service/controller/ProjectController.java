@@ -28,7 +28,7 @@ public class ProjectController {
 
         return ResponseEntity.ok(createdProject);
     }
-
+    @PostMapping("/getrepos")
     public ResponseEntity<List<Project>> getUserRepositories(@PathVariable String ownerEmail){
         return ResponseEntity.ok(projectService.getUserProject(ownerEmail));
     }

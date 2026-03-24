@@ -8,6 +8,7 @@ import org.apache.commons.logging.Log;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -18,6 +19,7 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final KafkaProducerService producerService;
 
+    @Transactional
     public Project createProject(String name, String ownerEmail, String description, boolean isPrivate){
         log.info("checking if a repo already exists for user : {}/ {} ", name, ownerEmail);
 
