@@ -4,10 +4,14 @@ import com.dev.repository_service.entity.Project;
 import com.dev.repository_service.service.MinioService;
 import com.dev.repository_service.service.ProjectService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.util.List;
 
 @RestController
@@ -52,5 +56,23 @@ public class ProjectController {
 
         String savedPath = minioService.uploadFile(ownerEmail, name, file);
         return ResponseEntity.ok().body("file successfully pushed to :" + savedPath);
+    }
+
+    @PostMapping("/download/{ownerEmail}/{name}")
+    public ResponseEntity<InputStreamResource> downloadFile(@PathVariable String ownerEmail,
+                                                            @PathVariable String name,
+                                                            @RequestParam("fileName")String fileName){
+
+        if(!projectService.userProjectExists(ownerEmail,name)){
+            return ResponseEntity.badRequest().body("");
+        }
+
+        InputStream stream = minioService.downloadFile(ownerEmail, name, fileName);
+        InputStreamResource resource = new InputStreamResource(stream);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
     }
 }

@@ -1,5 +1,6 @@
 package com.dev.repository_service.service;
-
+import io.minio.GetObjectArgs;
+import java.io.InputStream;
 import io.minio.BucketExistsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
@@ -60,4 +61,20 @@ public class MinioService {
         }
     }
 
+    public InputStream downloadFile(String ownerEmail, String name, String fileName) {
+        try {
+            String objectName = ownerEmail + "/" + name + "/" + fileName;
+
+            return minioClient.getObject(
+                    GetObjectArgs.
+                            builder().
+                            bucket(bucketName).
+                            object(objectName)
+                    .build()
+            );
+        }catch(Exception e){
+            log.error("couldn't download file : {}", fileName, e);
+            throw new RuntimeException("download failed" + e.getMessage());
+        }
+    }
 }
