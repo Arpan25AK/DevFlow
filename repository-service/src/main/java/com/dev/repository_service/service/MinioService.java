@@ -3,12 +3,14 @@ package com.dev.repository_service.service;
 import io.minio.BucketExistsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
+import io.minio.PutObjectArgs;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -34,6 +36,27 @@ public class MinioService {
         }catch(Exception e){
             log.error("error connecting to minio warehouse");
             throw new RuntimeException("failed to initialize minio bucket",e);
+        }
+    }
+
+    public String uploadFile(String ownerEmail, String name, MultipartFile file){
+        try{
+            String objectName = ownerEmail + "/" + name + "/" + file.getOriginalFilename();
+
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .stream(file.getInputStream(),file.getSize(), -1)
+                            .contentType(file.getContentType())
+                    .build());
+
+            log.info("code uploaded: {}",objectName);
+            return objectName;
+        }
+        catch(Exception e){
+            log.error("failed to upload the new file");
+            throw new RuntimeException("error uploading file: " + e.getMessage());
         }
     }
 
