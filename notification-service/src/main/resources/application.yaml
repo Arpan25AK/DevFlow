@@ -1,3 +1,34 @@
+server:
+  port: 8083 # Running on a different port than Auth (8081) and Repo (8082)
+
 spring:
   application:
     name: notification-service
+
+  # Kafka Consumer Setup
+  kafka:
+    consumer:
+      bootstrap-servers: localhost:9092
+      group-id: notification-group # The ID of this specific listener
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+  # Email Setup (SMTP)
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: akarpan2005@gmail.com # 👈 Your actual DevFlow sender email
+    password: YOUR_16_DIGIT_APP_PASSWORD_HERE # 👈 We will get this next
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# Eureka Client Setup
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
