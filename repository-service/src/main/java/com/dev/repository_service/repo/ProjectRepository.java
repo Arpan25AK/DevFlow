@@ -13,4 +13,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
      boolean existsByOwnerEmailAndName(String ownerEmail, String name);
 
+     boolean deleteRepo(String ownerEmail, String name);
+
 }

@@ -50,4 +50,8 @@ public class ProjectService {
         return projectRepository.existsByOwnerEmailAndName(ownerEmail, name);
     }
 
+    public boolean deleteUserRepo(String ownerEmail, String name){
+        return projectRepository.deleteRepo(ownerEmail,name);
+    }
+
 }

@@ -86,4 +86,10 @@ public class ProjectController {
         List<String> files = minioService.fileList(ownerEmail,name);
         return ResponseEntity.ok(files);
     }
+
+    @DeleteMapping("/delrepo/{ownerEmail}/{name}")
+    public ResponseEntity<Boolean> deleteUserRepo(@PathVariable String ownerEmail,
+                                                  @PathVariable String name){
+        return ResponseEntity.ok(projectService.deleteUserRepo(ownerEmail, name));
+    }
 }
