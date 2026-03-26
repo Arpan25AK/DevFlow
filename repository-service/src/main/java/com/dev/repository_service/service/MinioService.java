@@ -105,4 +105,32 @@ public class MinioService {
             throw new RuntimeException("Error during repo data retrival" + e.getMessage());
         }
     }
+
+    public void deleteUserFiles(String ownerEmail, String name){
+        try{
+            String prefix = ownerEmail + "/" + name + "/";
+
+            Iterable<Result<Item>> results = minioClient.listObjects(
+                    ListObjectsArgs.builder().
+                            bucket(bucketName).
+                            prefix(prefix).
+                            recursive(true)
+                            .build()
+            );
+
+            List<String> fileName = new ArrayList<>();
+            for(Result<Item> result : results){
+                Item item = result.get();
+
+                minioClient.removeObject(
+                        RemoveObjectArgs.builder()
+                                .bucket(bucketName).
+                                object(item.objectName())
+                                .build());
+            }
+        }catch(Exception e){
+            log.error("failed to del files for repo : {}",name);
+            throw new RuntimeException("Error deleting repo files" + e.getMessage());
+        }
+    }
 }

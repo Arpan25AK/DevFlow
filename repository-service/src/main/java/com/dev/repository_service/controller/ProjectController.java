@@ -87,9 +87,15 @@ public class ProjectController {
         return ResponseEntity.ok(files);
     }
 
-    @DeleteMapping("/delrepo/{ownerEmail}/{name}")
+    @DeleteMapping("/{ownerEmail}/{name}")
     public ResponseEntity<Boolean> deleteUserRepo(@PathVariable String ownerEmail,
                                                   @PathVariable String name){
-        return ResponseEntity.ok(projectService.deleteUserRepo(ownerEmail, name));
+       boolean isDeleted = projectService.deleteUserRepo(ownerEmail, name);
+
+       if(isDeleted){
+           return ResponseEntity.ok(true);
+       }else{
+           return ResponseEntity.badRequest().body(false);
+       }
     }
 }

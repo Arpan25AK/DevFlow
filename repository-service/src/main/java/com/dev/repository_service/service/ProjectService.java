@@ -18,6 +18,7 @@ import java.util.List;
 public class ProjectService {
     private final ProjectRepository projectRepository;
     private final KafkaProducerService producerService;
+    private final MinioService minioService;
 
     @Transactional
     public Project createProject(String name, String ownerEmail, String description, boolean isPrivate){
@@ -51,7 +52,15 @@ public class ProjectService {
     }
 
     public boolean deleteUserRepo(String ownerEmail, String name){
-        return projectRepository.deleteRepo(ownerEmail,name);
+        if(!projectRepository.existsByOwnerEmailAndName(ownerEmail, name)){
+            return false;
+        }
+
+        minioService.deleteUserFiles(ownerEmail, name);
+
+        Long deleteCount = projectRepository.deleteByOwnerEmailAndName(ownerEmail,name);
+
+        return deleteCount > 0;
     }
 
 }
