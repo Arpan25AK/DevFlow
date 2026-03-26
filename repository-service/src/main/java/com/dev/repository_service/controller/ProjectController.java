@@ -58,13 +58,13 @@ public class ProjectController {
         return ResponseEntity.ok().body("file successfully pushed to :" + savedPath);
     }
 
-    @PostMapping("/download/{ownerEmail}/{name}")
+    @GetMapping("/download/{ownerEmail}/{name}")
     public ResponseEntity<InputStreamResource> downloadFile(@PathVariable String ownerEmail,
                                                             @PathVariable String name,
                                                             @RequestParam("fileName")String fileName){
 
         if(!projectService.userProjectExists(ownerEmail,name)){
-            return ResponseEntity.badRequest().body("");
+            return ResponseEntity.badRequest().build();
         }
 
         InputStream stream = minioService.downloadFile(ownerEmail, name, fileName);

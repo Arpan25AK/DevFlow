@@ -30,9 +30,9 @@ public class MinioService {
 
             if(!found){
                 minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
-                log.info("minio bucket created",bucketName);
+                log.info("minio bucket created: {}",bucketName);
             }else{
-                log.info("bucket already exists!", bucketName);
+                log.info("bucket already exists! : {}", bucketName);
             }
         }catch(Exception e){
             log.error("error connecting to minio warehouse");
