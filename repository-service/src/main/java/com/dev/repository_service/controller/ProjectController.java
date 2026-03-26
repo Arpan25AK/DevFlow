@@ -75,4 +75,15 @@ public class ProjectController {
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(resource);
     }
+
+    @GetMapping("/getfiles/{ownerEmail}/{name}")
+    public ResponseEntity<List<String>> userFiles(@PathVariable String ownerEmail,
+                                                  @PathVariable String name){
+        if(!projectService.userProjectExists(ownerEmail, name)){
+            return ResponseEntity.badRequest().build();
+        }
+
+        List<String> files = minioService.fileList(ownerEmail,name);
+        return ResponseEntity.ok(files);
+    }
 }

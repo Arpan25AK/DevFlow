@@ -1,10 +1,11 @@
 package com.dev.repository_service.service;
-import io.minio.GetObjectArgs;
+import io.minio.*;
+
 import java.io.InputStream;
-import io.minio.BucketExistsArgs;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
+import java.util.ArrayList;
+import java.util.List;
+
+import io.minio.messages.Item;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -75,6 +76,33 @@ public class MinioService {
         }catch(Exception e){
             log.error("couldn't download file : {}", fileName, e);
             throw new RuntimeException("download failed" + e.getMessage());
+        }
+    }
+
+    public List<String> fileList(String ownerEmail, String name){
+        try{
+            String prefix = ownerEmail + "/" + name + "/";
+
+            Iterable<Result<Item>> results = minioClient.listObjects(
+                    ListObjectsArgs.builder().
+                            bucket(bucketName).
+                            prefix(prefix).
+                            recursive(true)
+                            .build()
+            );
+
+            List<String> fileName = new ArrayList<>();
+            for(Result<Item> result : results){
+                Item item = result.get();
+
+                String fullObjName = item.objectName();
+                String cleanObjName = fullObjName.substring(prefix.length());
+                fileName.add(cleanObjName);
+            }
+            return fileName;
+        }catch(Exception e){
+            log.error("User repo is Empty!");
+            throw new RuntimeException("Error during repo data retrival" + e.getMessage());
         }
     }
 }
