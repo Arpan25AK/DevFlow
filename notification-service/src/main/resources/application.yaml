@@ -1,5 +1,5 @@
 server:
-  port: 8083 # Running on a different port than Auth (8081) and Repo (8082)
+  port: 8083
 
 spring:
   application:
@@ -9,7 +9,7 @@ spring:
   kafka:
     consumer:
       bootstrap-servers: localhost:9092
-      group-id: notification-group # The ID of this specific listener
+      group-id: notification-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -18,8 +18,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: akarpan2005@gmail.com # 👈 Your actual DevFlow sender email
-    password: YOUR_16_DIGIT_APP_PASSWORD_HERE # 👈 We will get this next
+    username: blank2004a@gmail.com
+    password: YOUR_16_DIGIT_APP_PASSWORD_HERE
     properties:
       mail:
         smtp:
