@@ -86,7 +86,7 @@ public class ProjectController {
         List<String> files = minioService.fileList(ownerEmail,name);
         return ResponseEntity.ok(files);
     }
-
+    //this deletes the repo and the files inside the minio bucket such that when u delete the repo no files releated to that repo is left behind
     @DeleteMapping("/{ownerEmail}/{name}")
     public ResponseEntity<Boolean> deleteUserRepo(@PathVariable String ownerEmail,
                                                   @PathVariable String name){
