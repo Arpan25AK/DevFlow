@@ -12,6 +12,8 @@ services:
     ports:
       - "5432:5432"
     restart: always
+    volumes: # 👈 ADD THIS
+      - postgres_data:/var/lib/postgresql/data
 
   # 2. NoSQL Database (For Real-Time Chat History)
   mongodb:
@@ -66,3 +68,9 @@ services:
       - "9001:9001"
     command: server /data --console-address ":9001"
     restart: always
+    volumes: # 👈 ADD THIS
+      - minio_data:/data
+
+volumes:
+  postgres_data:
+  minio_data:
