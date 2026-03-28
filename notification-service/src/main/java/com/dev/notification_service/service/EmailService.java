@@ -38,7 +38,7 @@ public class EmailService {
             helper.setText(htmlContent,true);
 
             mailSender.send(message);
-            log.info("Email send to {}",toEmail);
+            log.info("Email sent to {}",toEmail);
         }catch(Exception e){
             log.error("error occured during mail sending event to: {}",toEmail);
             throw new RuntimeException("error occurred during mail service" + e.getMessage());
