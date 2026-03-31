@@ -26,6 +26,13 @@ spring:
             predicates:
               - Path=/api/repositories/**
 
+          - id: cicd-service
+            uri: lb://ci-cd-service
+            predicates:
+              - Path=/api/cicd/**
+            filters:
+              - StripPrefix=2
+
 eureka:
   instance:
     prefer-ip-address: true
