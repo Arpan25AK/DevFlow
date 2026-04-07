@@ -4,12 +4,12 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.annotation.Id;
+
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Table(name="code-reviews")
+@Table(name="code_reviews")
 @Builder
 @Data
 @AllArgsConstructor
@@ -20,16 +20,16 @@ public class CodeReview {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false,name = "repository-id")
+    @Column(nullable = false,name = "repository_id")
     private UUID repositoryId;
 
-    @Column(nullable = false, name = "reviewer-id")
+    @Column(nullable = false, name = "reviewer_id")
     private UUID reviewerId;
 
-    @Column(nullable = false, name=  "pullrequest-id")
+    @Column(nullable = false, name=  "pullrequest_id")
     private UUID pullrequestId;
 
-    @Column(nullable = false, name = "author-id")
+    @Column(nullable = false, name = "author_id")
     private UUID authorId;
 
     @Column(nullable = false)
@@ -40,10 +40,10 @@ public class CodeReview {
     private String comments;
 
     @CreationTimestamp
-    @Column(updatable = false, name = "created-at")
+    @Column(updatable = false, name = "created_at")
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated-at")
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }
