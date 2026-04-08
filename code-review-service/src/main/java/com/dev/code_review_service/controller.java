@@ -21,7 +21,7 @@ public class controller {
     @PostMapping
     public ResponseEntity<CodeReview> createReview(@PathVariable CodeReview review) {
         CodeReview createdReview = codeReviewService.createReview(review);
-        return new ResponseEntity.status(HttpStatus.CREATED).body(createdReview);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdReview);
     }
 
     public ResponseEntity<List<CodeReview>> getReviewsByReviewerId(@PathVariable UUID reviewerId) {
