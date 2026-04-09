@@ -1,5 +1,6 @@
 package com.dev.code_review_service.service;
 
+import com.dev.code_review_service.client.RepositoryServiceClient;
 import com.dev.code_review_service.entity.CodeReview;
 import com.dev.code_review_service.entity.ReviewStatus;
 import com.dev.code_review_service.repo.CodeServiceRepo;
@@ -17,10 +18,17 @@ import java.util.UUID;
 public class CodeReviewService {
     private final CodeServiceRepo codeServiceRepo;
     private final KafkaTemplate<String, String> kafkaTemplate;
+    private final RepositoryServiceClient serviceClient;
 
     private static final String REVIEW_TOPIC = "code-review-events";
 
     public CodeReview createReview(CodeReview review){
+        boolean exists = serviceClient.checkRepositoryExists(review.getRepositoryId());
+
+        if(!exists){
+            throw new RuntimeException("repository error : no repo was found connected to the id");
+        }
+
         if(review.getStatus() == null) review.setStatus(ReviewStatus.PENDING);
 
         CodeReview savedReview = codeServiceRepo.save(review);
