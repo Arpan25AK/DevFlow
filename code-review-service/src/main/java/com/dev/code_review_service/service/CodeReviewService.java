@@ -1,6 +1,8 @@
 package com.dev.code_review_service.service;
 
 import com.dev.code_review_service.client.RepositoryServiceClient;
+import com.dev.code_review_service.dto.CodeReviewRequest;
+import com.dev.code_review_service.dto.CodeReviewResponse;
 import com.dev.code_review_service.entity.CodeReview;
 import com.dev.code_review_service.entity.ReviewStatus;
 import com.dev.code_review_service.repo.CodeServiceRepo;
@@ -22,21 +24,39 @@ public class CodeReviewService {
 
     private static final String REVIEW_TOPIC = "code-review-events";
 
-    public CodeReview createReview(CodeReview review, UUID reviewID){
-        boolean exists = serviceClient.checkRepositoryExists(review.getRepositoryId());
+    public CodeReviewResponse createReview(CodeReviewRequest request, UUID reviewId){
+        boolean exists = serviceClient.checkRepositoryExists(request.repositoryId());
 
         if(!exists){
             throw new RuntimeException("repository error : no repo was found connected to the id");
         }
 
-        CodeReview newReview =
+        CodeReview newReview = CodeReview.builder()
+            .repositoryId(request.repositoryId()).
+                pullrequestId(request.pullrequestId()).
+                authorId(request.authorId()).
+                reviewerId(reviewId).
+                comments(request.comments()).
+                status(ReviewStatus.PENDING).
+                build();
 
-        CodeReview savedReview = codeServiceRepo.save(review);
+
+
+        CodeReview savedReview = codeServiceRepo.save(newReview);
         log.info("Saved new code review with ID: {}", savedReview.getId());
 
         kafkaTemplate.send(REVIEW_TOPIC, "New review created for PR: " + savedReview.getPullrequestId());
 
-        return savedReview;
+        return new CodeReviewResponse(
+                savedReview.getId(),
+                savedReview.getRepositoryId(),
+                savedReview.getPullrequestId(),
+                savedReview.getReviewerId(),
+                savedReview.getAuthorId(),
+                savedReview.getComments(),
+                savedReview.getStatus(),
+                savedReview.getCreatedAt()
+        );
     }
 
     public List<CodeReview> getByReviewId(UUID reviewerID){
