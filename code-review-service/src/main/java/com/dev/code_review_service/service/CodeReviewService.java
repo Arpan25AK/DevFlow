@@ -22,14 +22,14 @@ public class CodeReviewService {
 
     private static final String REVIEW_TOPIC = "code-review-events";
 
-    public CodeReview createReview(CodeReview review){
+    public CodeReview createReview(CodeReview review, UUID reviewID){
         boolean exists = serviceClient.checkRepositoryExists(review.getRepositoryId());
 
         if(!exists){
             throw new RuntimeException("repository error : no repo was found connected to the id");
         }
 
-        if(review.getStatus() == null) review.setStatus(ReviewStatus.PENDING);
+        CodeReview newReview =
 
         CodeReview savedReview = codeServiceRepo.save(review);
         log.info("Saved new code review with ID: {}", savedReview.getId());
