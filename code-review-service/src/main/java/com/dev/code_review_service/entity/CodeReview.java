@@ -21,7 +21,7 @@ public class CodeReview {
     private UUID id;
 
     @Column(nullable = false,name = "repository_id")
-    private UUID repositoryId;
+    private Long repositoryId;
 
     @Column(nullable = false, name = "reviewer_id")
     private UUID reviewerId;

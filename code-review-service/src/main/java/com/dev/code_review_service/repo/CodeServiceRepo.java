@@ -10,7 +10,7 @@ import java.util.UUID;
 @Repository
 public interface CodeServiceRepo extends JpaRepository<CodeReview, UUID> {
 
-    List<CodeReview> getByRepositoryId(UUID repositoryId);
+    List<CodeReview> getByRepositoryId(Long repositoryId);
 
     List<CodeReview> findByReviewerId(UUID reviewerId);
 

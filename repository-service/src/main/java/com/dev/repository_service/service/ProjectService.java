@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -61,6 +62,10 @@ public class ProjectService {
         Long deleteCount = projectRepository.deleteByOwnerEmailAndName(ownerEmail,name);
 
         return deleteCount > 0;
+    }
+
+    public boolean projectExistsById(long repositoryId){
+        return projectRepository.existsById(repositoryId);
     }
 
 }

@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public record CodeReviewResponse (
         UUID id,
-        UUID repositoryId,
+        Long repositoryId,
         UUID pullrequestId,
         UUID reviewId,
         UUID authorId,

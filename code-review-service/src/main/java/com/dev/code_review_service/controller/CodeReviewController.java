@@ -1,4 +1,4 @@
-package com.dev.code_review_service;
+package com.dev.code_review_service.controller;
 
 import com.dev.code_review_service.dto.CodeReviewRequest;
 import com.dev.code_review_service.dto.CodeReviewResponse;
@@ -16,7 +16,7 @@ import java.util.UUID;
 @RequestMapping("/api/reviews")
 @RestController
 @RequiredArgsConstructor
-public class controller {
+public class CodeReviewController {
 
     private final CodeReviewService codeReviewService;
 
