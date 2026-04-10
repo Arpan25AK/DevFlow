@@ -10,5 +10,5 @@ import java.util.UUID;
 public interface RepositoryServiceClient {
 
     @GetMapping("/api/repositories/{repositoryId}/exists")
-    boolean checkRepositoryExists(@PathVariable("repository-id") Long repositoryId);
+    boolean checkRepositoryExists(@PathVariable("repositoryId") Long repositoryId);
 }

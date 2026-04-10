@@ -76,6 +76,12 @@ public class ProjectController {
                 .body(resource);
     }
 
+    @GetMapping("/{repositoryId}/exists")
+    public ResponseEntity<Boolean> checkRepositoryExistsById(@PathVariable Long repositoryId) {
+        boolean exists = projectService.projectExistsById(repositoryId);
+        return ResponseEntity.ok(exists);
+    }
+
     @GetMapping("/getfiles/{ownerEmail}/{name}")
     public ResponseEntity<List<String>> userFiles(@PathVariable String ownerEmail,
                                                   @PathVariable String name){
@@ -97,5 +103,6 @@ public class ProjectController {
        }else{
            return ResponseEntity.badRequest().body(false);
        }
+
     }
 }
