@@ -1,5 +1,7 @@
 package com.dev.code_review_service;
 
+import com.dev.code_review_service.dto.CodeReviewRequest;
+import com.dev.code_review_service.dto.CodeReviewResponse;
 import com.dev.code_review_service.entity.CodeReview;
 import com.dev.code_review_service.entity.ReviewStatus;
 import com.dev.code_review_service.service.CodeReviewService;
@@ -19,8 +21,10 @@ public class controller {
     private final CodeReviewService codeReviewService;
 
 
-    public ResponseEntity<CodeReview> createReview(@PathVariable CodeReview review) {
-        CodeReview createdReview = codeReviewService.createReview(review);
+    public ResponseEntity<CodeReviewResponse> createReview(@PathVariable CodeReviewRequest request, @PathVariable("X-User-Id") String userIdHeader) {
+
+        UUID reviewerId = UUID.fromString(userIdHeader);
+        CodeReviewResponse createdReview = codeReviewService.createReview(request , reviewerId);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdReview);
     }
     @GetMapping("/reviewer/{reviewerId}")
