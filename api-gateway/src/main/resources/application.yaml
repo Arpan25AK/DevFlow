@@ -25,6 +25,15 @@ spring:
             uri: lb://repository-service
             predicates:
               - Path=/api/repositories/**
+            filters:
+              - AuthenticationFilter
+
+          - id: code-review-service
+            uri: lb://code-review-service
+            predicates:
+              - Path=/api/reviews/**
+            filters:
+              - AuthenticationFilter
 
           - id: cicd-service
             uri: lb://ci-cd-service
