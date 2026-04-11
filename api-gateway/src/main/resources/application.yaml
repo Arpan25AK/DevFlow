@@ -26,14 +26,14 @@ spring:
             predicates:
               - Path=/api/repositories/**
             filters:
-              - AuthenticationFilter
+              - name: authFilter
 
           - id: code-review-service-route
             uri: lb://code-review-service
             predicates:
               - Path=/api/reviews/**
             filters:
-              - AuthenticationFilter
+              - name: authFilter
 
           - id: cicd-service
             uri: lb://ci-cd-service
