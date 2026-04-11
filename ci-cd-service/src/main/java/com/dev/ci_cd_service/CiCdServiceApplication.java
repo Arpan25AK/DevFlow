@@ -8,13 +8,8 @@ import java.util.TimeZone;
 
 @SpringBootApplication
 public class CiCdServiceApplication {
-    @PostConstruct
-    public void init(){
-        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Kolkata"));
+    public static void main(String[] args) {
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Kolkata")); // must be before Spring starts
+        SpringApplication.run(CiCdServiceApplication.class, args);
     }
-
-	public static void main(String[] args) {
-		SpringApplication.run(CiCdServiceApplication.class, args);
-	}
-
 }
