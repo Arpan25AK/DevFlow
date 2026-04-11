@@ -1,73 +1,89 @@
 package com.dev.api_gateway.filter;
 
 import com.dev.api_gateway.util.JwtUtil;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
 
 @Component
-public class AuthenticationFilter extends AbstractGatewayFilterFactory<AuthenticationFilter.Config> {
+public class AuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
-
-    public AuthenticationFilter(JwtUtil jwtUtil) {
-        super(Config.class);
-        this.jwtUtil = jwtUtil;
-    }
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Override
-    public GatewayFilterapply(Config config) {
-        return ((exchange, chain) -> {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
 
-            // 1. Check if the Authorization header exists
-            if (!exchange.getRequest().getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
-                return onError(exchange, "Missing Authorization Header", HttpStatus.UNAUTHORIZED);
-            }
+        String path = request.getRequestURI();
 
-            String authHeader = exchange.getRequest().getHeaders().get(HttpHeaders.AUTHORIZATION).get(0);
+        // 1. Bypass authentication for open endpoints (like login/register in auth-service)
+        if (path.startsWith("/api/auth")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-            // 2. Extract the token (Remove "Bearer ")
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                authHeader = authHeader.substring(7);
-            } else {
-                return onError(exchange, "Invalid Authorization Header format", HttpStatus.UNAUTHORIZED);
-            }
+        // 2. Check for Authorization header
+        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            sendErrorResponse(response, "Missing or invalid Authorization Header", HttpStatus.UNAUTHORIZED);
+            return;
+        }
 
-            try {
-                // 3. Validate the token
-                jwtUtil.validateToken(authHeader);
+        String token = authHeader.substring(7);
 
-                // 4. Extract the user ID (UUID)
-                String userId = jwtUtil.extractUserId(authHeader);
+        try {
+            // 3. Validate Token and Extract User ID
+            jwtUtil.validateToken(token);
+            String userId = jwtUtil.extractUserId(token);
 
-                // 5. Mutate the request: Add the X-User-Id header dynamically!
-                ServerWebExchange modifiedExchange = exchange.mutate()
-                        .request(exchange.getRequest().mutate()
-                                .header("X-User-Id", userId)
-                                .build())
-                        .build();
+            // 4. Mutate the request to inject the X-User-Id header for downstream microservices
+            HttpServletRequest mutatedRequest = new HttpServletRequestWrapper(request) {
+                @Override
+                public String getHeader(String name) {
+                    if ("X-User-Id".equalsIgnoreCase(name)) return userId;
+                    return super.getHeader(name);
+                }
 
-                // 6. Pass the modified request down to the microservices
-                return chain.filter(modifiedExchange);
+                @Override
+                public Enumeration<String> getHeaders(String name) {
+                    if ("X-User-Id".equalsIgnoreCase(name)) {
+                        return Collections.enumeration(Collections.singletonList(userId));
+                    }
+                    return super.getHeaders(name);
+                }
 
-            } catch (Exception e) {
-                return onError(exchange, "Unauthorized access to application", HttpStatus.FORBIDDEN);
-            }
-        });
+                @Override
+                public Enumeration<String> getHeaderNames() {
+                    List<String> names = Collections.list(super.getHeaderNames());
+                    names.add("X-User-Id");
+                    return Collections.enumeration(names);
+                }
+            };
+
+            // 5. Pass the newly mutated request down the chain
+            filterChain.doFilter(mutatedRequest, response);
+
+        } catch (Exception e) {
+            sendErrorResponse(response, "Unauthorized access: Invalid Token", HttpStatus.FORBIDDEN);
+        }
     }
 
-    // Helper to return clean 401/403 responses if the token is invalid
-    private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus httpStatus) {
-        exchange.getResponse().setStatusCode(httpStatus);
-        return exchange.getResponse().setComplete();
-    }
-
-    public static class Config {
-        // Put configuration properties here if needed later
+    private void sendErrorResponse(HttpServletResponse response, String message, HttpStatus status) throws IOException {
+        response.setStatus(status.value());
+        response.setContentType("application/json");
+        response.getWriter().write("{\"error\": \"" + message + "\"}");
     }
 }
