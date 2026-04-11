@@ -31,7 +31,9 @@ spring:
           - id: code-review-service-route
             uri: lb://code-review-service
             predicates:
-              - Path=/api/reviews/**r
+              - Path=/api/reviews/**
+            filters:
+              - AuthenticationFilter
 
           - id: cicd-service
             uri: lb://ci-cd-service
