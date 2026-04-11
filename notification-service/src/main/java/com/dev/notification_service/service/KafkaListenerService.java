@@ -17,6 +17,11 @@ public class KafkaListenerService {
     //inbuilt dto
     public record projectEvent(String ownerEmail, String name){}
 
+    @KafkaListener(topics = "code-review-events", groupId = "notification-group")
+    public void listenCodeReviewEvents(String message) {
+        log.info("🔔 CODE REVIEW ALERT: Received message from Kafka -> {}", message);
+    }
+
     @KafkaListener(topics = "project-lifecycle", groupId = "notification-group")
     public void consumeProjectEventCreated(String message){
         try{
