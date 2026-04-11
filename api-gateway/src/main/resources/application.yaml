@@ -7,46 +7,37 @@ spring:
 
   cloud:
     gateway:
-      mvc:
+      server:
+        webmvc:
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
 
-        discovery:
-          locator:
-            enabled: true # Allows Gateway to use Eureka to find services
-            lower-case-service-id: true
+          routes:
+            - id: auth-service-route
+              uri: lb://auth-service
+              predicates:
+                - Path=/api/auth/**
 
-        # Here is our Master Routing Map!
-        routes:
-          - id: auth-service-route
-            uri: lb://auth-service    # "lb://" stands for Load Balancer. It asks Eureka for the IP!
-            predicates:
-              - Path=/api/auth/** # Any URL starting with this gets sent to the Auth Service
+            - id: repository-service-route
+              uri: lb://repository-service
+              predicates:
+                - Path=/api/repositories/**
 
-          - id: repository-service-route
-            uri: lb://repository-service
-            predicates:
-              - Path=/api/repositories/**
-            filters:
-              - name: authFilter
+            - id: cicd-service
+              uri: lb://ci-cd-service
+              predicates:
+                - Path=/api/cicd/**
 
-          - id: code-review-service-route
-            uri: lb://code-review-service
-            predicates:
-              - Path=/api/reviews/**
-            filters:
-              - name: authFilter
-
-          - id: cicd-service
-            uri: lb://ci-cd-service
-            predicates:
-              - Path=/api/cicd/**
-            filters:
-              - StripPrefix=2
+            - id: code-review-service-route
+              uri: lb://code-review-service
+              predicates:
+                - Path=/api/reviews/**
 
 eureka:
-  instance:
-    prefer-ip-address: true
   client:
-    register-with-eureka: true
-    fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true

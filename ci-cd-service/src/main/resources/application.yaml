@@ -7,7 +7,7 @@ spring:
 
   # Database Connection (To track our Build Jobs)
   datasource:
-    url: jdbc:postgresql://localhost:5432/devflow_db
+    url: jdbc:postgresql://localhost:5432/cicd_db?options=-c%20timezone=Asia/Kolkata
     username: devflow
     password: password
     driver-class-name: org.postgresql.Driver
