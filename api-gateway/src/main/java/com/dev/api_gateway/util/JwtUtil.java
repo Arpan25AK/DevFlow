@@ -2,8 +2,7 @@ package com.dev.api_gateway.util;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.Keys; // Decoders is no longer needed
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -11,7 +10,7 @@ import java.security.Key;
 @Component
 public class JwtUtil {
 
-    // the secret key is the same as the one used in auth service.
+    // Ensure this string perfectly matches the value in your auth-service application.yaml
     public static final String SECRET = "5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437";
 
     public void validateToken(final String token) {
@@ -25,11 +24,10 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
 
-        return claims.getSubject(); // Assuming auth-service puts the UUID in the "subject"
+        return claims.getSubject(); // This will now correctly return the UUID!
     }
 
     private Key getSignKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET);
-        return Keys.hmacShaKeyFor(keyBytes);
+        return Keys.hmacShaKeyFor(SECRET.getBytes());
     }
 }

@@ -14,7 +14,7 @@ public interface CodeServiceRepo extends JpaRepository<CodeReview, UUID> {
 
     List<CodeReview> findByReviewerId(UUID reviewerId);
 
-    List<CodeReview> findByPullrequestId(String pullrequestId);
+    List<CodeReview> findByPullrequestId(UUID pullrequestId);
 
 
 }

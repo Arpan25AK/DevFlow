@@ -63,7 +63,7 @@ public class CodeReviewService {
         return codeServiceRepo.findByReviewerId(reviewerID);
     }
 
-    public List<CodeReview> getByPullrequestId(String pullrequestId){
+    public List<CodeReview> getByPullrequestId(UUID pullrequestId){
         return codeServiceRepo.findByPullrequestId(pullrequestId);
     }
 

@@ -20,8 +20,8 @@ public class CodeReviewController {
 
     private final CodeReviewService codeReviewService;
 
-
-    public ResponseEntity<CodeReviewResponse> createReview(@PathVariable CodeReviewRequest request, @PathVariable("X-User-Id") String userIdHeader) {
+    @PostMapping
+    public ResponseEntity<CodeReviewResponse> createReview(@RequestBody CodeReviewRequest request, @RequestHeader("X-User-Id") String userIdHeader) {
 
         UUID reviewerId = UUID.fromString(userIdHeader);
         CodeReviewResponse createdReview = codeReviewService.createReview(request , reviewerId);
@@ -33,12 +33,12 @@ public class CodeReviewController {
         return ResponseEntity.ok(reviews);
     }
     @GetMapping("/pr/{pullrequestId}")
-    public ResponseEntity<List<CodeReview>> getReviewsByPR(@PathVariable String pullrequestId) {
+    public ResponseEntity<List<CodeReview>> getReviewsByPR(@PathVariable UUID pullrequestId) {
         List<CodeReview> reviews = codeReviewService.getByPullrequestId(pullrequestId);
         return ResponseEntity.ok(reviews);
     }
     @PutMapping("/{reviewId}/status")
-    public ResponseEntity<CodeReview> updateByReviewId(@PathVariable UUID reviewId, ReviewStatus newStatus){
+    public ResponseEntity<CodeReview> updateByReviewId(@PathVariable UUID reviewId,@RequestParam ReviewStatus newStatus){
         CodeReview updatedReview = codeReviewService.updateReview(reviewId, newStatus);
         return ResponseEntity.ok(updatedReview);
     }

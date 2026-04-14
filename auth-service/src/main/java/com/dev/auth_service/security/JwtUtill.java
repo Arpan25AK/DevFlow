@@ -27,13 +27,13 @@ public class JwtUtill {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String generateToken(String email, String role){
+    public String generateToken(String userId, String role){
         Map<String, Object> claims = new HashMap<>();
         claims.put("role",role);
 
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(email)
+                .setSubject(userId)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(key, SignatureAlgorithm.HS256)
