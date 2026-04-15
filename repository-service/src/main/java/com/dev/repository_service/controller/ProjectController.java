@@ -1,6 +1,7 @@
 package com.dev.repository_service.controller;
 
 import com.dev.repository_service.entity.Project;
+import com.dev.repository_service.service.KafkaProducerService;
 import com.dev.repository_service.service.MinioService;
 import com.dev.repository_service.service.ProjectService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import java.util.List;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final KafkaProducerService kafkaProducerService;
     private final MinioService minioService;
 
     public record CreateProjectRequest(String name, String ownerEmail, String description, boolean isPrivate){}
@@ -53,8 +55,11 @@ public class ProjectController {
         if(!projectService.userProjectExists(ownerEmail,name)){
             return ResponseEntity.badRequest().body("repository dosen't exists ");
         }
-
         String savedPath = minioService.uploadFile(ownerEmail, name, file);
+
+        String actualFile = file.getOriginalFilename();
+        if(actualFile == null) actualFile = "unknown-file";
+        kafkaProducerService.fileUploadEvent(ownerEmail,name,actualFile);
         return ResponseEntity.ok().body("file successfully pushed to :" + savedPath);
     }
 

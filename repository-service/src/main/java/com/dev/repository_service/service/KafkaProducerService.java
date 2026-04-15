@@ -20,4 +20,10 @@ public class KafkaProducerService {
 
         log.info("Alert ! broadcasted new project creation at kafka for {} / {} ", ownerEmail, name);
     }
+
+    public void fileUploadEvent(String ownerEmail, String name, String fileName){
+        String message = String.format("{\"ownerEmail\":\"%s\", \"name\":\"%s\", \"fileName\":\"%s\"}", ownerEmail, name, fileName);
+        kafkaTemplate.send("code-uploaded-topic", message);
+        log.info("Alert ! broadcasted file upload at kafka for {} / {} / {}", ownerEmail, name, fileName);
+    }
 }
