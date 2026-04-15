@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import jakarta.persistence.Id;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Entity
@@ -16,8 +17,8 @@ import java.time.LocalDateTime;
 public class PipelineRun {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     private String ownerEmail;
 
