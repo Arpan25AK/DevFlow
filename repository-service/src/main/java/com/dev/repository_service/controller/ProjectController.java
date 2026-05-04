@@ -1,6 +1,7 @@
 package com.dev.repository_service.controller;
 
 import com.dev.repository_service.entity.Project;
+import com.dev.repository_service.exception.UnauthorizedException;
 import com.dev.repository_service.service.KafkaProducerService;
 import com.dev.repository_service.service.MinioService;
 import com.dev.repository_service.service.ProjectService;
@@ -27,7 +28,18 @@ public class ProjectController {
     public record CreateProjectRequest(String name, String ownerEmail, String description, boolean isPrivate){}
 
     @PostMapping("/create")
-    public ResponseEntity<Project> createRepository(@RequestBody CreateProjectRequest request){
+    public ResponseEntity<Project> createRepository(
+            @RequestHeader("X-User-Id") String userId,
+            @RequestBody CreateProjectRequest request){
+        
+        if (request.name() == null || request.name().isEmpty()) {
+            throw new RuntimeException("Repository name required");
+        }
+        
+        if (!userId.equals(request.ownerEmail())) {
+            throw new UnauthorizedException("Cannot create repo for another user");
+        }
+
         Project createdProject = projectService.createProject(
                 request.name(),
                 request.ownerEmail(),
@@ -38,7 +50,14 @@ public class ProjectController {
         return ResponseEntity.ok(createdProject);
     }
     @GetMapping("/getrepos/{ownerEmail}")
-    public ResponseEntity<List<Project>> getUserRepositories(@PathVariable String ownerEmail){
+    public ResponseEntity<List<Project>> getUserRepositories(
+            @RequestHeader("X-User-Id") String userId,
+            @PathVariable String ownerEmail){
+        
+        if (!userId.equals(ownerEmail)) {
+            throw new UnauthorizedException("Cannot access repos for another user");
+        }
+
         return ResponseEntity.ok(projectService.getUserProject(ownerEmail));
     }
 
@@ -48,13 +67,20 @@ public class ProjectController {
     }
 
     @PostMapping("/upload/{ownerEmail}/{name}")
-    public ResponseEntity<String> uploadFile(@PathVariable String ownerEmail,
-                                             @PathVariable String name,
-                                             @RequestParam("file")MultipartFile file){
+    public ResponseEntity<String> uploadFile(
+            @RequestHeader("X-User-Id") String userId,
+            @PathVariable String ownerEmail,
+            @PathVariable String name,
+            @RequestParam("file")MultipartFile file){
+
+        if (!userId.equals(ownerEmail)) {
+            throw new UnauthorizedException("Cannot upload to another user's repo");
+        }
 
         if(!projectService.userProjectExists(ownerEmail,name)){
-            return ResponseEntity.badRequest().body("repository dosen't exists ");
+            return ResponseEntity.badRequest().body("Repository doesn't exist");
         }
+        
         String savedPath = minioService.uploadFile(ownerEmail, name, file);
 
         String actualFile = file.getOriginalFilename();
@@ -64,9 +90,15 @@ public class ProjectController {
     }
 
     @GetMapping("/download/{ownerEmail}/{name}")
-    public ResponseEntity<InputStreamResource> downloadFile(@PathVariable String ownerEmail,
-                                                            @PathVariable String name,
-                                                            @RequestParam("fileName")String fileName){
+    public ResponseEntity<InputStreamResource> downloadFile(
+            @RequestHeader("X-User-Id") String userId,
+            @PathVariable String ownerEmail,
+            @PathVariable String name,
+            @RequestParam("fileName")String fileName){
+
+        if (!userId.equals(ownerEmail)) {
+            throw new UnauthorizedException("Cannot download from another user's repo");
+        }
 
         if(!projectService.userProjectExists(ownerEmail,name)){
             return ResponseEntity.badRequest().build();
@@ -88,8 +120,15 @@ public class ProjectController {
     }
 
     @GetMapping("/getfiles/{ownerEmail}/{name}")
-    public ResponseEntity<List<String>> userFiles(@PathVariable String ownerEmail,
-                                                  @PathVariable String name){
+    public ResponseEntity<List<String>> userFiles(
+            @RequestHeader("X-User-Id") String userId,
+            @PathVariable String ownerEmail,
+            @PathVariable String name){
+        
+        if (!userId.equals(ownerEmail)) {
+            throw new UnauthorizedException("Cannot access files from another user's repo");
+        }
+
         if(!projectService.userProjectExists(ownerEmail, name)){
             return ResponseEntity.badRequest().build();
         }
@@ -97,10 +136,16 @@ public class ProjectController {
         List<String> files = minioService.fileList(ownerEmail,name);
         return ResponseEntity.ok(files);
     }
-    //this deletes the repo and the files inside the minio bucket such that when u delete the repo no files releated to that repo is left behind
     @DeleteMapping("/{ownerEmail}/{name}")
-    public ResponseEntity<Boolean> deleteUserRepo(@PathVariable String ownerEmail,
-                                                  @PathVariable String name){
+    public ResponseEntity<Boolean> deleteUserRepo(
+            @RequestHeader("X-User-Id") String userId,
+            @PathVariable String ownerEmail,
+            @PathVariable String name){
+       
+       if (!userId.equals(ownerEmail)) {
+           throw new UnauthorizedException("Cannot delete another user's repo");
+       }
+
        boolean isDeleted = projectService.deleteUserRepo(ownerEmail, name);
 
        if(isDeleted){
