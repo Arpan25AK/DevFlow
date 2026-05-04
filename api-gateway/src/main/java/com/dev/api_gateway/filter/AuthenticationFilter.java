@@ -36,6 +36,12 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        //1.5 bypass authentication for websocket endpoint
+        if(path.startsWith("/api/chat")){
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         // 2. Check for Authorization header
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {

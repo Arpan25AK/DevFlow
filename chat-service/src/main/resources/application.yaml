@@ -1,3 +1,13 @@
+server:
+  port: 8005
+
 spring:
   application:
     name: chat-service
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
