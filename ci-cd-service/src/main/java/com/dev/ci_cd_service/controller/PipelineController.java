@@ -4,6 +4,7 @@ import com.dev.ci_cd_service.entity.PipelineRun;
 import com.dev.ci_cd_service.repo.PipelineRunRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,6 +18,7 @@ public class PipelineController {
 
     private final PipelineRunRepository repository;
 
+    @GetMapping("/{ownerEmail}/{name}/history")
     public ResponseEntity<List<PipelineRun>> getProjectPipelineHistory(@PathVariable String ownerEmail,
                                                                        @PathVariable String name){
         List<PipelineRun> history = repository.findByOwnerEmailAndNameOrderByTimeStampDesc(ownerEmail, name);
