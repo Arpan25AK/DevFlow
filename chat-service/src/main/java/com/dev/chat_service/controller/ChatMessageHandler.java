@@ -1,6 +1,8 @@
 package com.dev.chat_service.controller;
 
 import com.dev.chat_service.dto.ChatMessage;
+import com.dev.chat_service.entity.ChatMessageDocument;
+import com.dev.chat_service.repo.ChatMessageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -15,18 +17,23 @@ import java.time.LocalDateTime;
 public class ChatMessageHandler {
 
     private final SimpMessagingTemplate messagingTemplate;
+    private final ChatMessageRepository chatMessageRepository;
+    private final ChatMessageDocument chatMessageDocument;
 
     @MessageMapping("/send")
     public void sendMessage(@Payload ChatMessage message, StompHeaderAccessor headerAccessor) {
-        
-        // Extract userId from session attributes (set by HandshakeInterceptor)
         String userId = (String) headerAccessor.getSessionAttributes().get("userId");
-        
-        // Set sender info and timestamp
         message.setSenderId(userId);
         message.setTimeStamp(LocalDateTime.now());
-        
-        // Broadcast to all subscribers on /topic/messages
+
+        // PERSIST
+        chatMessageRepository.save(ChatMessageDocument.builder()
+                .pullrequestId(message.getPullrequestId())
+                .senderId(userId)
+                .content(message.getContent())
+                .timeStamp(message.getTimeStamp())
+                .build());
+
         messagingTemplate.convertAndSend("/topic/messages", message);
     }
 }

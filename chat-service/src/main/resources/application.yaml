@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: chat-service
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/devflow_chat
+
 
 eureka:
   client:
