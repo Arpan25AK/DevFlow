@@ -36,9 +36,7 @@ public class ProjectController {
             throw new RuntimeException("Repository name required");
         }
         
-        if (!userId.equals(request.ownerEmail())) {
-            throw new UnauthorizedException("Cannot create repo for another user");
-        }
+
 
         Project createdProject = projectService.createProject(
                 request.name(),
@@ -54,9 +52,7 @@ public class ProjectController {
             @RequestHeader("X-User-Id") String userId,
             @PathVariable String ownerEmail){
         
-        if (!userId.equals(ownerEmail)) {
-            throw new UnauthorizedException("Cannot access repos for another user");
-        }
+
 
         return ResponseEntity.ok(projectService.getUserProject(ownerEmail));
     }
@@ -73,9 +69,7 @@ public class ProjectController {
             @PathVariable String name,
             @RequestParam("file")MultipartFile file){
 
-        if (!userId.equals(ownerEmail)) {
-            throw new UnauthorizedException("Cannot upload to another user's repo");
-        }
+
 
         if(!projectService.userProjectExists(ownerEmail,name)){
             return ResponseEntity.badRequest().body("Repository doesn't exist");
@@ -96,9 +90,7 @@ public class ProjectController {
             @PathVariable String name,
             @RequestParam("fileName")String fileName){
 
-        if (!userId.equals(ownerEmail)) {
-            throw new UnauthorizedException("Cannot download from another user's repo");
-        }
+
 
         if(!projectService.userProjectExists(ownerEmail,name)){
             return ResponseEntity.badRequest().build();
@@ -125,9 +117,7 @@ public class ProjectController {
             @PathVariable String ownerEmail,
             @PathVariable String name){
         
-        if (!userId.equals(ownerEmail)) {
-            throw new UnauthorizedException("Cannot access files from another user's repo");
-        }
+
 
         if(!projectService.userProjectExists(ownerEmail, name)){
             return ResponseEntity.badRequest().build();
@@ -142,9 +132,7 @@ public class ProjectController {
             @PathVariable String ownerEmail,
             @PathVariable String name){
        
-       if (!userId.equals(ownerEmail)) {
-           throw new UnauthorizedException("Cannot delete another user's repo");
-       }
+
 
        boolean isDeleted = projectService.deleteUserRepo(ownerEmail, name);
 

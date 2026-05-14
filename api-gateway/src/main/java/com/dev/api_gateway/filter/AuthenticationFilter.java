@@ -4,19 +4,14 @@ import com.dev.api_gateway.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
 
 @RequiredArgsConstructor
 @Component
@@ -30,19 +25,11 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // 1. Bypass authentication for open endpoints (like login/register in auth-service)
-        if (path.startsWith("/api/auth")) {
+        if (path.startsWith("/api/auth") || path.startsWith("/api/chat")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        //1.5 bypass authentication for websocket endpoint
-        if(path.startsWith("/api/chat")){
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        // 2. Check for Authorization header
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             sendErrorResponse(response, "Missing or invalid Authorization Header", HttpStatus.UNAUTHORIZED);
@@ -52,36 +39,13 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
 
         try {
-            // 3. Validate Token and Extract User ID
             jwtUtil.validateToken(token);
             String userId = jwtUtil.extractUserId(token);
 
-            // 4. Mutate the request to inject the X-User-Id header for downstream microservices
-            HttpServletRequest mutatedRequest = new HttpServletRequestWrapper(request) {
-                @Override
-                public String getHeader(String name) {
-                    if ("X-User-Id".equalsIgnoreCase(name)) return userId;
-                    return super.getHeader(name);
-                }
+            MutableHttpServletRequest mutableRequest = new MutableHttpServletRequest(request);
+            mutableRequest.putHeader("X-User-Id", userId);
 
-                @Override
-                public Enumeration<String> getHeaders(String name) {
-                    if ("X-User-Id".equalsIgnoreCase(name)) {
-                        return Collections.enumeration(Collections.singletonList(userId));
-                    }
-                    return super.getHeaders(name);
-                }
-
-                @Override
-                public Enumeration<String> getHeaderNames() {
-                    List<String> names = Collections.list(super.getHeaderNames());
-                    names.add("X-User-Id");
-                    return Collections.enumeration(names);
-                }
-            };
-
-            // 5. Pass the newly mutated request down the chain
-            filterChain.doFilter(mutatedRequest, response);
+            filterChain.doFilter(mutableRequest, response);
 
         } catch (Exception e) {
             sendErrorResponse(response, "Unauthorized access: Invalid Token", HttpStatus.FORBIDDEN);
