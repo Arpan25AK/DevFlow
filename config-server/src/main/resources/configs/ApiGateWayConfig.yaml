@@ -33,6 +33,10 @@ spring:
                 - Path=/api/chat/**
               filters:
                 - StripPrefix=2
+            - id: analytics-service-route
+              uri: lb://AnalyticsConfig
+              predicates:
+                - Path=/api/analytics/**
 
 eureka:
   client:
