@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.UUID;
 
-@FeignClient(name = "repository-service")
+@FeignClient(name = "RepoConfig")
 public interface RepositoryServiceClient {
 
     @GetMapping("/api/repositories/{repositoryId}/exists")

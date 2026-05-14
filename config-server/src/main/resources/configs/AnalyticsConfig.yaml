@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/analytics_db
+    url: jdbc:postgresql://localhost:5432/analytics_db?TimeZone=Asia/Kolkata
     username: devflow
     password: password
     driver-class-name: org.postgresql.Driver

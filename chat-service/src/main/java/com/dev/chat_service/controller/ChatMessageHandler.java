@@ -18,7 +18,7 @@ public class ChatMessageHandler {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatMessageRepository chatMessageRepository;
-    private final ChatMessageDocument chatMessageDocument;
+
 
     @MessageMapping("/send")
     public void sendMessage(@Payload ChatMessage message, StompHeaderAccessor headerAccessor) {

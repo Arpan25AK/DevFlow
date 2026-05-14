@@ -12,27 +12,32 @@ spring:
               lower-case-service-id: true
           routes:
             - id: auth-service-route
-              uri: lb://auth-service
+              uri: lb://AuthServiceConfig
               predicates:
                 - Path=/api/auth/**
+
             - id: repository-service-route
-              uri: lb://repository-service
+              uri: lb://RepoConfig
               predicates:
                 - Path=/api/repositories/**
+
             - id: cicd-service
-              uri: lb://ci-cd-service
+              uri: lb://Ci_CdConfig
               predicates:
                 - Path=/api/cicd/**
+
             - id: code-review-service-route
-              uri: lb://code-review-service
+              uri: lb://CodeReviewConfig
               predicates:
                 - Path=/api/reviews/**
+
             - id: chat-service-route
-              uri: lb://chat-service
+              uri: lb://ChatServiceConfig
               predicates:
                 - Path=/api/chat/**
               filters:
                 - StripPrefix=2
+
             - id: analytics-service-route
               uri: lb://AnalyticsConfig
               predicates:
