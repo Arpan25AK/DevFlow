@@ -85,11 +85,18 @@ public class AnalyticsService {
     }
 
     public Map<String, Object> getPipelineSummary(String repoName) {
+        List<PipelineStatsEvent> pipelines = pipelineStatsRepo.findByRepoNameOrderByTimestampDesc(repoName);
+
+        double avg = pipelines.stream()
+                .mapToLong(PipelineStatsEvent::getDurationSeconds)
+                .average()
+                .orElse(0.0);
+
         Map<String, Object> summary = new HashMap<>();
         summary.put("SUCCESS", pipelineStatsRepo.countByStatus("SUCCESS"));
         summary.put("FAILED", pipelineStatsRepo.countByStatus("FAILED"));
         summary.put("RUNNING", pipelineStatsRepo.countByStatus("RUNNING"));
-        summary.put("avgDurationSeconds", pipelineStatsRepo.avgDurationByRepoName(repoName));
+        summary.put("avgDurationSeconds", avg);
         return summary;
     }
 

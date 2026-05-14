@@ -14,6 +14,7 @@ services:
     restart: always
     volumes: # 👈 ADD THIS
       - postgres_data:/var/lib/postgresql/data
+      - ./init-db/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   # 2. NoSQL Database (For Real-Time Chat History)
   mongodb:
