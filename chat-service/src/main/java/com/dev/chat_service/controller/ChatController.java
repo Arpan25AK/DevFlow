@@ -22,4 +22,4 @@ public class ChatController {
 
         return chatMessage; // Automatically broadcasted to subscribers!
     }
-}
+}  //use ws in path to connect to websocket

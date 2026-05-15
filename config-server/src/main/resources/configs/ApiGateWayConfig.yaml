@@ -22,9 +22,11 @@ spring:
                 - Path=/api/repositories/**
 
             - id: cicd-service
-              uri: lb://Ci_CdConfig
+              uri: http://localhost:8084
               predicates:
                 - Path=/api/cicd/**
+              filters:
+                - StripPrefix=2
 
             - id: code-review-service-route
               uri: lb://CodeReviewConfig

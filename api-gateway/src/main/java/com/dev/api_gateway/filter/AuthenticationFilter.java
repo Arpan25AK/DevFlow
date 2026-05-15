@@ -37,21 +37,19 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(7);
+        String userId;
 
         try {
             jwtUtil.validateToken(token);
-            String userId = jwtUtil.extractUserId(token);
-
-            MutableHttpServletRequest mutableRequest = new MutableHttpServletRequest(request);
-            mutableRequest.putHeader("X-User-Id", userId);
-
-            filterChain.doFilter(mutableRequest, response);
-
+            userId = jwtUtil.extractUserId(token);
         } catch (io.jsonwebtoken.JwtException e) {
             sendErrorResponse(response, "Unauthorized access: Invalid Token", HttpStatus.FORBIDDEN);
-        } catch (Exception e) {
-            sendErrorResponse(response, "Gateway routing error: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return;
         }
+
+        MutableHttpServletRequest mutableRequest = new MutableHttpServletRequest(request);
+        mutableRequest.putHeader("X-User-Id", userId);
+        filterChain.doFilter(mutableRequest, response);
     }
 
     private void sendErrorResponse(HttpServletResponse response, String message, HttpStatus status) throws IOException {
