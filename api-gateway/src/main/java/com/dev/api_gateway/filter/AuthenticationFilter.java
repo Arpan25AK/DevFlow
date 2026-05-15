@@ -47,8 +47,10 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(mutableRequest, response);
 
-        } catch (Exception e) {
+        } catch (io.jsonwebtoken.JwtException e) {
             sendErrorResponse(response, "Unauthorized access: Invalid Token", HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            sendErrorResponse(response, "Gateway routing error: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

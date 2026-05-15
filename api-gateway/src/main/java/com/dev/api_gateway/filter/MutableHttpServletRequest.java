@@ -7,26 +7,29 @@ import java.util.*;
 
 public class MutableHttpServletRequest extends HttpServletRequestWrapper {
 
-    private final Map<String, String> customHeaders = new HashMap<>();
+    private final Map<String, String> customHeaders;
 
     public MutableHttpServletRequest(HttpServletRequest request) {
         super(request);
+        this.customHeaders = new HashMap<>();
     }
 
     public void putHeader(String name, String value) {
-        customHeaders.put(name, value);
+        this.customHeaders.put(name, value);
     }
 
     @Override
     public String getHeader(String name) {
-        if (customHeaders.containsKey(name)) return customHeaders.get(name);
+        String value = customHeaders.get(name);
+        if (value != null) return value;
         return super.getHeader(name);
     }
 
     @Override
     public Enumeration<String> getHeaders(String name) {
-        if (customHeaders.containsKey(name))
-            return Collections.enumeration(Collections.singletonList(customHeaders.get(name)));
+        String value = customHeaders.get(name);
+        if (value != null)
+            return Collections.enumeration(Collections.singletonList(value));
         return super.getHeaders(name);
     }
 
