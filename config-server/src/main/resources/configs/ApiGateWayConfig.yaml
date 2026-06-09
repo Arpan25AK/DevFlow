@@ -6,20 +6,6 @@ spring:
     gateway:
       server:
         webmvc:
-        globalcors:
-          cors-configurations:
-            '[/**]':
-              allowedOrigins:
-                - "http://localhost:5173"
-              allowedMethods:
-                - GET
-                - POST
-                - PUT
-                - DELETE
-                - OPTIONS
-              allowedHeaders:
-                - "*"
-              allowCredentials: true
           discovery:
             locator:
               enabled: true
@@ -39,8 +25,6 @@ spring:
               uri: http://localhost:8084
               predicates:
                 - Path=/api/cicd/**
-              filters:
-                - StripPrefix=2
 
             - id: code-review-service-route
               uri: lb://CodeReviewConfig
@@ -51,8 +35,6 @@ spring:
               uri: lb://ChatServiceConfig
               predicates:
                 - Path=/api/chat/**
-              filters:
-                - StripPrefix=2
 
             - id: analytics-service-route
               uri: lb://AnalyticsConfig
