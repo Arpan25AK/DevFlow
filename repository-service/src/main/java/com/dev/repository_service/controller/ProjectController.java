@@ -152,4 +152,24 @@ public class ProjectController {
        }
 
     }
+
+    @DeleteMapping("/deletefile/{ownerEmail}/{name}")
+    public ResponseEntity<String> deleteFile(
+            @RequestHeader("X-User-Id") String userId,
+            @PathVariable String ownerEmail,
+            @PathVariable String name,
+            @RequestParam("fileName") String fileName){
+
+        // only owner can delete their files
+        if(!userId.equals(ownerEmail)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("not your repo");
+        }
+
+        if(!projectService.userProjectExists(ownerEmail, name)){
+            return ResponseEntity.notFound().build();
+        }
+
+        minioService.deleteSingleFile(ownerEmail, name, fileName);
+        return ResponseEntity.ok("file deleted: " + fileName);
+    }
 }
