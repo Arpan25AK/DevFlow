@@ -122,10 +122,14 @@ public class ProjectController {
             @PathVariable String ownerEmail,
             @PathVariable String name){
         
+        Project project  = projectService.getProject(ownerEmail, name);
 
+        if(project == null){
+            return ResponseEntity.notFound().build();
+        }
 
-        if(!projectService.userProjectExists(ownerEmail, name)){
-            return ResponseEntity.badRequest().build();
+        if(project.isPrivate() && !userId.equals(ownerEmail)){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         List<String> files = minioService.fileList(ownerEmail,name);
