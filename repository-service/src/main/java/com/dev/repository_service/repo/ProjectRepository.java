@@ -6,11 +6,14 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Long> {
 
      List<Project> findByOwnerEmail(String ownerEmail);
+
+     Optional<Project> findByOwnerEmailAndName(String ownerString, String name);
 
      boolean existsByOwnerEmailAndName(String ownerEmail, String name);
 

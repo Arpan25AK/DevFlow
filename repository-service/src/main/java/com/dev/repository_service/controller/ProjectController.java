@@ -8,6 +8,7 @@ import com.dev.repository_service.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -90,10 +91,14 @@ public class ProjectController {
             @PathVariable String name,
             @RequestParam("fileName")String fileName){
 
+        Project project = projectService.getProject(ownerEmail, name);
 
+        if(project == null){
+            return ResponseEntity.notFound().build();
+        }
 
-        if(!projectService.userProjectExists(ownerEmail,name)){
-            return ResponseEntity.badRequest().build();
+        if(project.isPrivate() && !userId.equals(ownerEmail)){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         InputStream stream = minioService.downloadFile(ownerEmail, name, fileName);
