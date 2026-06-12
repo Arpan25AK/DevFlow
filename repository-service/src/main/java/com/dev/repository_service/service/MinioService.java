@@ -133,4 +133,20 @@ public class MinioService {
             throw new RuntimeException("Error deleting repo files" + e.getMessage());
         }
     }
+
+    public void deleteSingleFile(String ownerEmail , String name, String fileName){
+        try{
+            String objectName = ownerEmail + "/" + name + "/" + fileName;
+
+            minioClient.removeObject(
+                    RemoveObjectArgs.builder()
+                            .bucket(bucketName).
+                            object(objectName)
+                            .build());
+            log.info("file deleted!", objectName);
+        }catch(Exception e){
+            log.error("failed to delete file: {}", fileName);
+            throw new RuntimeException("error deleting file: " + e.getMessage());
+        }
+    }
 }
