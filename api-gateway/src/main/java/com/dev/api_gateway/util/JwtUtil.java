@@ -34,4 +34,16 @@ public class JwtUtil {
                 .getBody();
         return claims.getSubject();
     }
+
+    public String extractEmail(String token){
+        return extractClaims(token).get("email", String.class);
+    }
+
+    private Claims extractClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
 }

@@ -43,10 +43,13 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(7);
         String userId;
+        String email;
 
         try {
             jwtUtil.validateToken(token);
             userId = jwtUtil.extractUserId(token);
+            email = jwtUtil.extractEmail(token);
+            System.out.println(email);
         } catch (io.jsonwebtoken.JwtException e) {
             sendErrorResponse(response, "Unauthorized access: Invalid Token", HttpStatus.FORBIDDEN);
             return;
@@ -54,6 +57,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
         MutableHttpServletRequest mutableRequest = new MutableHttpServletRequest(request);
         mutableRequest.putHeader("X-User-Id", userId);
+        mutableRequest.putHeader("X-User-Email", email);
         filterChain.doFilter(mutableRequest, response);
     }
 

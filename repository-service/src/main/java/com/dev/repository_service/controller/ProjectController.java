@@ -29,15 +29,18 @@ public class ProjectController {
     public record CreateProjectRequest(String name, String ownerEmail, String description, boolean isPrivate){}
 
     @PostMapping("/create")
-    public ResponseEntity<Project> createRepository(
+    public ResponseEntity<?> createRepository(
             @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Email") String userEmail,
             @RequestBody CreateProjectRequest request){
         
         if (request.name() == null || request.name().isEmpty()) {
             throw new RuntimeException("Repository name required");
         }
-        
 
+        if(!userEmail.equals(request.ownerEmail())){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You are not authorized to create repo under another users email");
+        }
 
         Project createdProject = projectService.createProject(
                 request.name(),
@@ -66,6 +69,7 @@ public class ProjectController {
     @PostMapping("/upload/{ownerEmail}/{name}")
     public ResponseEntity<String> uploadFile(
             @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Email") String userEmail,
             @PathVariable String ownerEmail,
             @PathVariable String name,
             @RequestParam("file")MultipartFile file){
@@ -74,6 +78,10 @@ public class ProjectController {
 
         if(!projectService.userProjectExists(ownerEmail,name)){
             return ResponseEntity.badRequest().body("Repository doesn't exist");
+        }
+
+        if(!userEmail.equals(ownerEmail)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to upload files to other user's repo");
         }
         
         String savedPath = minioService.uploadFile(ownerEmail, name, file);
@@ -85,8 +93,9 @@ public class ProjectController {
     }
 
     @GetMapping("/download/{ownerEmail}/{name}")
-    public ResponseEntity<InputStreamResource> downloadFile(
+    public ResponseEntity<?> downloadFile(
             @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Email") String userEmail,
             @PathVariable String ownerEmail,
             @PathVariable String name,
             @RequestParam("fileName")String fileName){
@@ -97,8 +106,8 @@ public class ProjectController {
             return ResponseEntity.notFound().build();
         }
 
-        if(project.isPrivate() && !userId.equals(ownerEmail)){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if(project.isPrivate() && !userEmail.equals(ownerEmail)){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("The mentioned repo is private, cannot download");
         }
 
         InputStream stream = minioService.downloadFile(ownerEmail, name, fileName);
@@ -117,8 +126,9 @@ public class ProjectController {
     }
 
     @GetMapping("/getfiles/{ownerEmail}/{name}")
-    public ResponseEntity<List<String>> userFiles(
+    public ResponseEntity<?> userFiles(
             @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Email") String userEmail,
             @PathVariable String ownerEmail,
             @PathVariable String name){
         
@@ -128,40 +138,44 @@ public class ProjectController {
             return ResponseEntity.notFound().build();
         }
 
-        if(project.isPrivate() && !userId.equals(ownerEmail)){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if(project.isPrivate() && !userEmail.equals(ownerEmail)){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("This repository is private");
         }
 
         List<String> files = minioService.fileList(ownerEmail,name);
         return ResponseEntity.ok(files);
     }
     @DeleteMapping("/{ownerEmail}/{name}")
-    public ResponseEntity<Boolean> deleteUserRepo(
+    public ResponseEntity<?> deleteUserRepo(
             @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Email") String userEmail,
             @PathVariable String ownerEmail,
             @PathVariable String name){
-       
 
+            if(!userEmail.equals(ownerEmail)){
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unable to delete the repo as ur not the owner");
+            }
 
-       boolean isDeleted = projectService.deleteUserRepo(ownerEmail, name);
+            boolean isDeleted = projectService.deleteUserRepo(ownerEmail, name);
 
-       if(isDeleted){
-           return ResponseEntity.ok(true);
-       }else{
-           return ResponseEntity.badRequest().body(false);
-       }
+            if(isDeleted){
+                return ResponseEntity.ok(true);
+            }else{
+                return ResponseEntity.badRequest().body(false);
+            }
 
     }
 
     @DeleteMapping("/deletefile/{ownerEmail}/{name}")
     public ResponseEntity<String> deleteFile(
             @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Email") String userEmail,
             @PathVariable String ownerEmail,
             @PathVariable String name,
             @RequestParam("fileName") String fileName){
 
         // only owner can delete their files
-        if(!userId.equals(ownerEmail)){
+        if(!userEmail.equals(ownerEmail)){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("not your repo");
         }
 

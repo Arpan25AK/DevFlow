@@ -27,9 +27,10 @@ public class JwtUtill {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String generateToken(String userId, String role){
+    public String generateToken(String userId, String role, String email){
         Map<String, Object> claims = new HashMap<>();
         claims.put("role",role);
+        claims.put("email", email);
 
         return Jwts.builder()
                 .setClaims(claims)
