@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 public class AuthController {
     /*this is a dto method */
-    public record AuthRequest(String email, String password){}
+    public record AuthRequest(String email, String username, String password){}
 
     private final  AuthService authService;
 
@@ -20,7 +20,7 @@ public class AuthController {
     }
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody AuthRequest request){
-        String responsemessege = authService.registerUser(request.email(), request.password());
+        String responsemessege = authService.registerUser(request.email(), request.username(), request.password());
         return ResponseEntity.ok(responsemessege);
     }
     @PostMapping("/login")

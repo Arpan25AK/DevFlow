@@ -1,8 +1,10 @@
 package com.dev.auth_service.service;
 
 import com.dev.auth_service.entity.User;
+import com.dev.auth_service.exception.UserAlreadyExistsException;
 import com.dev.auth_service.repo.UserRepository;
 import com.dev.auth_service.security.JwtUtill;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,19 +20,34 @@ public class AuthService {
         this.userRepository = userRepository;
     }
 
-    public String registerUser(String email,String rawpassword){
+    public String registerUser(String email, String username, String rawpassword){
 
-        if(userRepository.existsByEmail(email)) throw new RuntimeException("user already found");
+        if(userRepository.existsByEmail(email)) throw new UserAlreadyExistsException("Email already in use");
+
+        String normalizedUsername = username == null ? null : username.trim().toLowerCase();
+        if(normalizedUsername == null || normalizedUsername.isEmpty()){
+            throw new IllegalArgumentException("Username is required");
+        }
+        if(!normalizedUsername.matches("^[a-z0-9_-]{3,39}$")){
+            throw new IllegalArgumentException("Username must be 3-39 characters: letters, numbers, - or _");
+        }
+        if(userRepository.existsByUserName(normalizedUsername)) throw new UserAlreadyExistsException("Username already taken");
 
         String hashedPassword = passwordEncoder.encode(rawpassword);
 
         User newUser = User.builder()
                 .email(email)
+                .userName(normalizedUsername)
                 .password(hashedPassword)
                 .role("ROLE-DEVELOPER")
                 .build();
 
-        userRepository.save(newUser);
+        try {
+            userRepository.save(newUser);
+        } catch (DataIntegrityViolationException e) {
+            // Backstop for the race between existsBy... and save() above.
+            throw new UserAlreadyExistsException("Email or username already taken");
+        }
 
         return "new User registered";
     }
@@ -43,6 +60,6 @@ public class AuthService {
             throw new RuntimeException("incorrect password");
         }
 
-        return jwtUtill.generateToken(user.getId().toString(), user.getRole(), user.getEmail());
+        return jwtUtill.generateToken(user.getId().toString(), user.getRole(), user.getEmail(), user.getUserName());
     }
 }
