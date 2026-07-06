@@ -18,6 +18,7 @@ public class ChatMessageDocument {
     private String id;
     private String pullrequestId;
     private String senderId;
+    private String senderUsername;
     private String content;
     private LocalDateTime timeStamp;
 }

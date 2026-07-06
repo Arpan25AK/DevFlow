@@ -24,7 +24,7 @@ public class ChatHandshakeInterceptor implements HandshakeInterceptor {
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
-        
+
         // Extract token from query parameter
         String query = request.getURI().getQuery();
         if (query == null || !query.contains("token=")) {
@@ -36,13 +36,15 @@ public class ChatHandshakeInterceptor implements HandshakeInterceptor {
         try {
             // Validate token
             jwtUtil.validateToken(token);
-            
+
             // Extract userId
             String userId = jwtUtil.extractUserId(token);
-            
+            String username = jwtUtil.extractUsername(token);
+
             // Store in session attributes
             attributes.put("userId", userId);
-            
+            attributes.put("username", username);
+
             return true;
         } catch (Exception e) {
             return false;
@@ -54,4 +56,3 @@ public class ChatHandshakeInterceptor implements HandshakeInterceptor {
                                WebSocketHandler wsHandler, Exception exception) {
     }
 }
-

@@ -23,13 +23,16 @@ public class ChatMessageHandler {
     @MessageMapping("/send")
     public void sendMessage(@Payload ChatMessage message, StompHeaderAccessor headerAccessor) {
         String userId = (String) headerAccessor.getSessionAttributes().get("userId");
+        String username = (String) headerAccessor.getSessionAttributes().get("username");
         message.setSenderId(userId);
+        message.setSenderUsername(username);
         message.setTimeStamp(LocalDateTime.now());
 
         // PERSIST
         chatMessageRepository.save(ChatMessageDocument.builder()
                 .pullrequestId(message.getPullrequestId())
                 .senderId(userId)
+                .senderUsername(username)
                 .content(message.getContent())
                 .timeStamp(message.getTimeStamp())
                 .build());
@@ -37,4 +40,3 @@ public class ChatMessageHandler {
         messagingTemplate.convertAndSend("/topic/messages", message);
     }
 }
-
