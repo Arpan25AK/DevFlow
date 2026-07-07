@@ -5,6 +5,7 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
 import java.time.LocalDateTime;
@@ -12,14 +13,19 @@ import java.time.LocalDateTime;
 @Controller
 public class ChatController {
     @MessageMapping("/chat/{pullRequestId}")
-    // Server broadcasts to: /topic/reviews/{pullRequestId}
     @SendTo("/topic/reviews/{pullRequestId}")
-    public ChatMessage sendMessage(@DestinationVariable String pullRequestId, @Payload ChatMessage chatMessage) {
+    public ChatMessage sendMessage(@DestinationVariable String pullRequestId,
+                                   @Payload ChatMessage chatMessage,
+                                   StompHeaderAccessor headerAccessor) {
 
-        // Ensure the timestamp is set right as the server receives it
+        String userId = (String) headerAccessor.getSessionAttributes().get("userId");
+        String username = (String) headerAccessor.getSessionAttributes().get("username");
+
+        chatMessage.setSenderId(userId);
+        chatMessage.setSenderUsername(username);
         chatMessage.setTimeStamp(LocalDateTime.now());
         chatMessage.setPullrequestId(pullRequestId);
 
-        return chatMessage; // Automatically broadcasted to subscribers!
+        return chatMessage;
     }
-}  //use ws in path to connect to websocket
+}
