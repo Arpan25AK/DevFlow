@@ -31,13 +31,13 @@ public class AuthService {
         if(!normalizedUsername.matches("^[a-z0-9_-]{3,39}$")){
             throw new IllegalArgumentException("Username must be 3-39 characters: letters, numbers, - or _");
         }
-        if(userRepository.existsByUserName(normalizedUsername)) throw new UserAlreadyExistsException("Username already taken");
+        if(userRepository.existsByUsername(normalizedUsername)) throw new UserAlreadyExistsException("Username already taken");
 
         String hashedPassword = passwordEncoder.encode(rawpassword);
 
         User newUser = User.builder()
                 .email(email)
-                .userName(normalizedUsername)
+                .username(normalizedUsername)
                 .password(hashedPassword)
                 .role("ROLE-DEVELOPER")
                 .build();
@@ -60,6 +60,6 @@ public class AuthService {
             throw new RuntimeException("incorrect password");
         }
 
-        return jwtUtill.generateToken(user.getId().toString(), user.getRole(), user.getEmail(), user.getUserName());
+        return jwtUtill.generateToken(user.getId().toString(), user.getRole(), user.getEmail(), user.getUsername());
     }
 }

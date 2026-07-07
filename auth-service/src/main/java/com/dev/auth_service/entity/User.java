@@ -21,7 +21,7 @@ public class User {
     private UUID id;
 
     @Column(unique = true , nullable = false, length = 39)
-    private String userName;
+    private String username;
 
     @Column(unique = true, nullable = false)
     private String email;
