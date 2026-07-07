@@ -25,7 +25,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.disable())  // ✅ disable Spring Security CORS entirely
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "errors").permitAll()
+                        .requestMatchers("/api/auth/**", "/internal/**", "errors").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
