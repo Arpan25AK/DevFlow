@@ -19,7 +19,6 @@ public class ChatMessageHandler {
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatMessageRepository chatMessageRepository;
 
-
     @MessageMapping("/send")
     public void sendMessage(@Payload ChatMessage message, StompHeaderAccessor headerAccessor) {
         String userId = (String) headerAccessor.getSessionAttributes().get("userId");
@@ -37,6 +36,7 @@ public class ChatMessageHandler {
                 .timeStamp(message.getTimeStamp())
                 .build());
 
-        messagingTemplate.convertAndSend("/topic/messages", message);
+        // BROADCAST — scoped per PR, not global
+        messagingTemplate.convertAndSend("/topic/reviews/" + message.getPullrequestId(), message);
     }
 }
