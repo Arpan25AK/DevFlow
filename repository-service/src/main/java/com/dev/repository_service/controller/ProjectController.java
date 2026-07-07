@@ -1,10 +1,12 @@
 package com.dev.repository_service.controller;
 
+import com.dev.repository_service.client.AuthServiceClient;
 import com.dev.repository_service.entity.Project;
 import com.dev.repository_service.exception.UnauthorizedException;
 import com.dev.repository_service.service.KafkaProducerService;
 import com.dev.repository_service.service.MinioService;
 import com.dev.repository_service.service.ProjectService;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -25,6 +27,38 @@ public class ProjectController {
     private final ProjectService projectService;
     private final KafkaProducerService kafkaProducerService;
     private final MinioService minioService;
+    private final AuthServiceClient authServiceClient;
+
+    public record RepoSummary(Long id, String name, String description, boolean isPrivate){
+        public static RepoSummary from(Project p){
+            return new RepoSummary(p.getId(), p.getName(), p.getDescription(), p.isPrivate());
+        }
+    }
+
+    public record UserProfileResponse(String username, List<RepoSummary> repositories){}
+
+    @GetMapping("/profile/{username}")
+    public ResponseEntity<?> getUserProfile(
+            @RequestHeader("X-User-Email") String userEmail,
+            @PathVariable String username){
+
+        AuthServiceClient.ResolvedUser resolvedUser;
+        try {
+            resolvedUser = authServiceClient.resolveByUsername(username.toLowerCase());
+        } catch (FeignException.NotFound e) {
+            return ResponseEntity.notFound().build();
+        }
+
+        boolean isOwner = userEmail.equals(resolvedUser.email());
+
+        List<Project> repos = isOwner
+                ? projectService.getUserProject(resolvedUser.email())
+                : projectService.getPublicUserProject(resolvedUser.email());
+
+        List<RepoSummary> summaries = repos.stream().map(RepoSummary::from).toList();
+
+        return ResponseEntity.ok(new UserProfileResponse(resolvedUser.username(), summaries));
+    }
 
     public record CreateProjectRequest(String name, String ownerEmail, String description, boolean isPrivate){}
 
@@ -33,7 +67,7 @@ public class ProjectController {
             @RequestHeader("X-User-Id") String userId,
             @RequestHeader("X-User-Email") String userEmail,
             @RequestBody CreateProjectRequest request){
-        
+
         if (request.name() == null || request.name().isEmpty()) {
             throw new RuntimeException("Repository name required");
         }
@@ -54,11 +88,16 @@ public class ProjectController {
     @GetMapping("/getrepos/{ownerEmail}")
     public ResponseEntity<List<Project>> getUserRepositories(
             @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Email") String userEmail,
             @PathVariable String ownerEmail){
-        
 
+        boolean isOwner = userEmail.equals(ownerEmail);
 
-        return ResponseEntity.ok(projectService.getUserProject(ownerEmail));
+        List<Project> repos = isOwner
+                ? projectService.getUserProject(ownerEmail)
+                : projectService.getPublicUserProject(ownerEmail);
+
+        return ResponseEntity.ok(repos);
     }
 
     @GetMapping("/repoexists/{ownerEmail}/{name}")
@@ -83,7 +122,7 @@ public class ProjectController {
         if(!userEmail.equals(ownerEmail)){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to upload files to other user's repo");
         }
-        
+
         String savedPath = minioService.uploadFile(ownerEmail, name, file);
 
         String actualFile = file.getOriginalFilename();
@@ -131,7 +170,7 @@ public class ProjectController {
             @RequestHeader("X-User-Email") String userEmail,
             @PathVariable String ownerEmail,
             @PathVariable String name){
-        
+
         Project project  = projectService.getProject(ownerEmail, name);
 
         if(project == null){
@@ -152,17 +191,17 @@ public class ProjectController {
             @PathVariable String ownerEmail,
             @PathVariable String name){
 
-            if(!userEmail.equals(ownerEmail)){
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unable to delete the repo as ur not the owner");
-            }
+        if(!userEmail.equals(ownerEmail)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unable to delete the repo as ur not the owner");
+        }
 
-            boolean isDeleted = projectService.deleteUserRepo(ownerEmail, name);
+        boolean isDeleted = projectService.deleteUserRepo(ownerEmail, name);
 
-            if(isDeleted){
-                return ResponseEntity.ok(true);
-            }else{
-                return ResponseEntity.badRequest().body(false);
-            }
+        if(isDeleted){
+            return ResponseEntity.ok(true);
+        }else{
+            return ResponseEntity.badRequest().body(false);
+        }
 
     }
 

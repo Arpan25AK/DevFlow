@@ -11,13 +11,15 @@ import java.util.Optional;
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Long> {
 
-     List<Project> findByOwnerEmail(String ownerEmail);
+    List<Project> findByOwnerEmail(String ownerEmail);
 
-     Optional<Project> findByOwnerEmailAndName(String ownerString, String name);
+    List<Project> findByOwnerEmailAndIsPrivateFalse(String ownerEmail);
 
-     boolean existsByOwnerEmailAndName(String ownerEmail, String name);
+    Optional<Project> findByOwnerEmailAndName(String ownerString, String name);
 
-     @Transactional
-     Long deleteByOwnerEmailAndName(String ownerEmail, String name);
+    boolean existsByOwnerEmailAndName(String ownerEmail, String name);
+
+    @Transactional
+    Long deleteByOwnerEmailAndName(String ownerEmail, String name);
 
 }

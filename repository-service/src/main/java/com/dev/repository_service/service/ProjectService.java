@@ -48,6 +48,11 @@ public class ProjectService {
         return projectRepository.findByOwnerEmail(ownerEmail);
     }
 
+    // Used when the viewer is NOT the owner - private repos must never show up here.
+    public List<Project> getPublicUserProject(String ownerEmail){
+        return projectRepository.findByOwnerEmailAndIsPrivateFalse(ownerEmail);
+    }
+
     // this method exists check if the user already has a repo
     public boolean userProjectExists(String ownerEmail, String name){
         return projectRepository.existsByOwnerEmailAndName(ownerEmail, name);
