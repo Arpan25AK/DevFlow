@@ -139,6 +139,27 @@ public class ProjectController {
             @PathVariable String name,
             @RequestParam("fileName")String fileName){
 
+        return downloadShared(userEmail, ownerEmail, name, fileName);
+    }
+
+    @GetMapping("/download/by-username/{username}/{name}")
+    public ResponseEntity<?> downloadFileByUsername(
+            @RequestHeader("X-User-Email") String userEmail,
+            @PathVariable String username,
+            @PathVariable String name,
+            @RequestParam("fileName")String fileName){
+
+        AuthServiceClient.ResolvedUser resolvedUser;
+        try {
+            resolvedUser = authServiceClient.resolveByUsername(username.toLowerCase());
+        } catch (FeignException.NotFound e) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return downloadShared(userEmail, resolvedUser.email(), name, fileName);
+    }
+
+    private ResponseEntity<?> downloadShared(String userEmail, String ownerEmail, String name, String fileName){
         Project project = projectService.getProject(ownerEmail, name);
 
         if(project == null){
@@ -171,6 +192,26 @@ public class ProjectController {
             @PathVariable String ownerEmail,
             @PathVariable String name){
 
+        return getFilesShared(userEmail, ownerEmail, name);
+    }
+
+    @GetMapping("/getfiles/by-username/{username}/{name}")
+    public ResponseEntity<?> userFilesByUsername(
+            @RequestHeader("X-User-Email") String userEmail,
+            @PathVariable String username,
+            @PathVariable String name){
+
+        AuthServiceClient.ResolvedUser resolvedUser;
+        try {
+            resolvedUser = authServiceClient.resolveByUsername(username.toLowerCase());
+        } catch (FeignException.NotFound e) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return getFilesShared(userEmail, resolvedUser.email(), name);
+    }
+
+    private ResponseEntity<?> getFilesShared(String userEmail, String ownerEmail, String name){
         Project project  = projectService.getProject(ownerEmail, name);
 
         if(project == null){
