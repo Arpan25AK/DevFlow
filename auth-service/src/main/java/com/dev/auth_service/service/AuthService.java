@@ -1,5 +1,6 @@
 package com.dev.auth_service.service;
 
+import com.dev.auth_service.entity.RefreshToken;
 import com.dev.auth_service.entity.User;
 import com.dev.auth_service.exception.UserAlreadyExistsException;
 import com.dev.auth_service.repo.UserRepository;
@@ -13,12 +14,16 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtill jwtUtill;
+    private final RefreshTokenService refreshTokenService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtill jwtUtill){
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtill jwtUtill, RefreshTokenService refreshTokenService){
         this.jwtUtill = jwtUtill;
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
+        this.refreshTokenService = refreshTokenService;
     }
+
+    public record LoginResponse(String accessToken, String refreshToken){}
 
     public String registerUser(String email, String username, String rawpassword){
 
@@ -52,7 +57,7 @@ public class AuthService {
         return "new User registered";
     }
 
-    public String login(String email, String rawpassord){
+    public LoginResponse login(String email, String rawpassord){
 
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("user not found"));
 
@@ -60,6 +65,12 @@ public class AuthService {
             throw new RuntimeException("incorrect password");
         }
 
-        return jwtUtill.generateToken(user.getId().toString(), user.getRole(), user.getEmail(), user.getUsername());
+        String accessToken =  jwtUtill.generateToken(user.getId().toString(), user.getRole(), user.getEmail(), user.getUsername());
+
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
+
+        return new LoginResponse(accessToken, refreshToken.getToken());
+
+
     }
 }
