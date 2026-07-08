@@ -1,11 +1,13 @@
 package com.dev.auth_service.service;
 
 import com.dev.auth_service.entity.RefreshToken;
+import com.dev.auth_service.exception.RefreshTokenException;
 import com.dev.auth_service.repo.RefreshTokenRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -32,5 +34,21 @@ public class RefreshTokenService {
                 .build();
 
         return refreshTokenRepo.save(token);
+    }
+
+    public RefreshToken verifyExpiration(RefreshToken token){
+        if (token.getExpiryDate().isBefore(Instant.now())) {
+            refreshTokenRepo.delete(token);
+            throw new RefreshTokenException("Refresh token expired, please login again");
+        }
+        return token;
+    }
+
+    public Optional<RefreshToken> findByToken(String token){
+        return refreshTokenRepo.findByToken(token);
+    }
+
+    public void deleteByToken(String token){
+        refreshTokenRepo.deleteByToken(token);
     }
 }
