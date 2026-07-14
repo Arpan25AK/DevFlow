@@ -31,17 +31,40 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody AuthRequest request, HttpServletResponse response){
         AuthService.LoginResponse result = authService.login(request.email(), request.password());
-
-        ResponseCookie cookie = buildRefreshCookie(result.refreshToken(), Duration.ofDays(7));
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-
+        response.addHeader(HttpHeaders.SET_COOKIE, buildRefreshCookie(result.refreshToken(), Duration.ofDays(7)).toString());
         return ResponseEntity.ok(result.accessToken());
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<String> refresh(
+            @CookieValue(name = "refreshToken", required = false) String refreshToken,
+            HttpServletResponse response){
+
+        if (refreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No refresh token present");
+        }
+
+        AuthService.LoginResponse result = authService.refreshAccessToken(refreshToken);
+        response.addHeader(HttpHeaders.SET_COOKIE, buildRefreshCookie(result.refreshToken(), Duration.ofDays(7)).toString());
+        return ResponseEntity.ok(result.accessToken());
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(
+            @CookieValue(name = "refreshToken", required = false) String refreshToken,
+            HttpServletResponse response){
+
+        if (refreshToken != null) {
+            authService.logout(refreshToken);
+        }
+        response.addHeader(HttpHeaders.SET_COOKIE, buildRefreshCookie("", Duration.ZERO).toString());
+        return ResponseEntity.ok("logged out");
     }
 
     private ResponseCookie buildRefreshCookie(String value, Duration maxAge){
         return ResponseCookie.from("refreshToken", value)
                 .httpOnly(true)
-                .secure(false) // dev is plain http; flip to true once this runs behind https
+                .secure(false)
                 .sameSite("Lax")
                 .path("/api/auth")
                 .maxAge(maxAge)

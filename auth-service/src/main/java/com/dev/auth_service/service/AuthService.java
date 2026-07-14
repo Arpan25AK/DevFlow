@@ -2,6 +2,7 @@ package com.dev.auth_service.service;
 
 import com.dev.auth_service.entity.RefreshToken;
 import com.dev.auth_service.entity.User;
+import com.dev.auth_service.exception.RefreshTokenException;
 import com.dev.auth_service.exception.UserAlreadyExistsException;
 import com.dev.auth_service.repo.UserRepository;
 import com.dev.auth_service.security.JwtUtill;
@@ -70,7 +71,24 @@ public class AuthService {
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
 
         return new LoginResponse(accessToken, refreshToken.getToken());
+    }
 
+    public LoginResponse refreshAccessToken(String refreshTokenValue){
+        RefreshToken refreshToken = refreshTokenService.findByToken(refreshTokenValue)
+                .orElseThrow(() -> new RefreshTokenException("Invalid refresh token"));
 
+        refreshTokenService.verifyExpiration(refreshToken);
+
+        User user = userRepository.findById(refreshToken.getUserId())
+                .orElseThrow(() -> new RefreshTokenException("User no longer exists"));
+
+        String newAccessToken = jwtUtill.generateToken(user.getId().toString(), user.getRole(), user.getEmail(), user.getUsername());
+        RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user.getId());
+
+        return new LoginResponse(newAccessToken, newRefreshToken.getToken());
+    }
+
+    public void logout(String refreshTokenValue){
+        refreshTokenService.deleteByToken(refreshTokenValue);
     }
 }
