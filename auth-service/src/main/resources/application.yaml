@@ -2,4 +2,4 @@ spring:
   application:
     name: AuthServiceConfig
   config:
-    import: optional:configserver:http://localhost:8888,optional:file:../.env[.properties]
+    import: optional:configserver:http://localhost:8888,optional:file:auth-service/.env[.properties]
