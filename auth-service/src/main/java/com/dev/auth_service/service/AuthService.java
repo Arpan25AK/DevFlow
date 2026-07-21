@@ -10,6 +10,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class AuthService {
     private final UserRepository userRepository;
@@ -71,6 +73,36 @@ public class AuthService {
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
 
         return new LoginResponse(accessToken, refreshToken.getToken());
+    }
+
+    public String changeUsername(String userId , String newUsername){
+        User user = userRepository.findById(java.util.UUID.fromString(userId)).orElseThrow(() -> new RuntimeException("user not found"));
+
+        String normalized = newUsername == null ? null : newUsername.trim().toLowerCase();
+
+        if(normalized == null || normalized.isEmpty()) throw new IllegalArgumentException("username is required");
+
+        if(!normalized.matches("^[a-z0-9_-]{3,39}$")){
+            throw new IllegalArgumentException("username must be inbetween 3- 39 chars long");
+        }
+
+        if(normalized.equals(user.getUsername())){
+            return jwtUtill.generateToken(user.getId().toString(),user.getRole(),user.getEmail(),user.getUsername());
+        }
+
+        if(userRepository.existsByUsername(normalized)){
+            throw new UserAlreadyExistsException("username already exists");
+        }
+
+        user.setUsername(normalized);
+
+        try{
+            userRepository.save(user);
+        }catch (DataIntegrityViolationException e){
+            throw new UserAlreadyExistsException("user already exists");
+        }
+
+        return jwtUtill.generateToken(user.getId().toString(), user.getRole(), user.getEmail(), user.getUsername());
     }
 
     public LoginResponse refreshAccessToken(String refreshTokenValue){
