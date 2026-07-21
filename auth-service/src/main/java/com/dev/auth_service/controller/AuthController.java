@@ -61,6 +61,15 @@ public class AuthController {
         return ResponseEntity.ok("logged out");
     }
 
+    public record changeUsernameRequest(String username){}
+
+    @PatchMapping("/username")
+    public ResponseEntity<?> changeUsername(@RequestHeader("X-User-Id") String userId,
+                                                 @RequestBody changeUsernameRequest request){
+        String newAccessToken = authService.changeUsername(userId, request.username());
+        return ResponseEntity.ok(newAccessToken);
+    }
+
     private ResponseCookie buildRefreshCookie(String value, Duration maxAge){
         return ResponseCookie.from("refreshToken", value)
                 .httpOnly(true)
