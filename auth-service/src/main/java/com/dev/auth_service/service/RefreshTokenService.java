@@ -5,6 +5,7 @@ import com.dev.auth_service.exception.RefreshTokenException;
 import com.dev.auth_service.repo.RefreshTokenRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -23,6 +24,7 @@ public class RefreshTokenService {
 
     }
 
+    @Transactional
     public RefreshToken createRefreshToken(UUID userId){
         refreshTokenRepo.deleteByUserId(userId);
         String tokenValue = UUID.randomUUID().toString();
@@ -36,6 +38,7 @@ public class RefreshTokenService {
         return refreshTokenRepo.save(token);
     }
 
+    @Transactional
     public RefreshToken verifyExpiration(RefreshToken token){
         if (token.getExpiryDate().isBefore(Instant.now())) {
             refreshTokenRepo.delete(token);
