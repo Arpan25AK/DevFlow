@@ -70,6 +70,16 @@ public class AuthController {
         return ResponseEntity.ok(newAccessToken);
     }
 
+    public record changeUserPasswordRequest(String currentPassword, String newPassword, boolean logoutEverywhere){}
+
+    @PatchMapping("/password")
+    public ResponseEntity<?> changeUserPassword(@RequestHeader("X-User-Id") String userId,
+                                                @RequestBody changeUserPasswordRequest request){
+
+        authService.changePassword(userId, request.currentPassword(), request.newPassword(),request.logoutEverywhere());
+        return ResponseEntity.ok("password changed successfully");
+    }
+
     private ResponseCookie buildRefreshCookie(String value, Duration maxAge){
         return ResponseCookie.from("refreshToken", value)
                 .httpOnly(true)
