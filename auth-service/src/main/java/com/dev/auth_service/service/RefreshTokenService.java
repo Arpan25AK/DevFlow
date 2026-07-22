@@ -54,4 +54,8 @@ public class RefreshTokenService {
     public void deleteByToken(String token){
         refreshTokenRepo.deleteByToken(token);
     }
+
+    public void revokeAllTokens(UUID userId){
+        refreshTokenRepo.deleteByUserId(userId);
+    }
 }

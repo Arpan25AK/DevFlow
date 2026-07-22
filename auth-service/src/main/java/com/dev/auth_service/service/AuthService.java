@@ -105,6 +105,30 @@ public class AuthService {
         return jwtUtill.generateToken(user.getId().toString(), user.getRole(), user.getEmail(), user.getUsername());
     }
 
+    public void changePassword(String userId, String currentPassword, String newPassword, Boolean logoutEverywhere){
+        User user = userRepository.findById(java.util.UUID.fromString(userId)).
+                orElseThrow(() -> new RuntimeException("user not found"));
+
+        if(currentPassword == null || !passwordEncoder.matches(currentPassword, user.getPassword())){
+            throw new IllegalArgumentException("password doesn't match");
+        }
+
+        if(newPassword == null || newPassword.length() < 8){
+            throw new IllegalArgumentException("new password should at least be 8 chars long");
+        }
+
+        if(passwordEncoder.matches(newPassword, user.getPassword())){
+            throw new IllegalArgumentException("new password cannot be same as curr password");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        if(logoutEverywhere){
+            refreshTokenService.revokeAllTokens(user.getId());
+        }
+    }
+
     public LoginResponse refreshAccessToken(String refreshTokenValue){
         RefreshToken refreshToken = refreshTokenService.findByToken(refreshTokenValue)
                 .orElseThrow(() -> new RefreshTokenException("Invalid refresh token"));
