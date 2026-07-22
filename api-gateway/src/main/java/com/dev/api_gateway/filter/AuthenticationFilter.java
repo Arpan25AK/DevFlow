@@ -30,7 +30,11 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        if (path.startsWith("/api/auth") || path.startsWith("/api/chat")) {
+        boolean isPublicAuthEndpoint = path.equals("/api/auth/login") ||
+                path.equals("api/auth/signup") ||
+                path.equals("api/auth/refresh");
+
+        if ( isPublicAuthEndpoint || path.startsWith("/api/chat")) {
             filterChain.doFilter(request, response);
             return;
         }
