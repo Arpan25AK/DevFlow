@@ -35,6 +35,41 @@ public class AuthController {
         return ResponseEntity.ok(result.accessToken());
     }
 
+    public record ChangeUsernameRequest(String username){}
+
+    @PatchMapping("/username")
+    public ResponseEntity<?> changeUsername(
+            @RequestHeader("X-User-Id") String userId,
+            @RequestBody ChangeUsernameRequest request){
+
+        String newAccessToken = authService.changeUsername(userId, request.username());
+        return ResponseEntity.ok(newAccessToken);
+    }
+
+    public record ChangePasswordRequest(String currentPassword, String newPassword, boolean logoutEverywhere){}
+
+    @PatchMapping("/password")
+    public ResponseEntity<String> changePassword(
+            @RequestHeader("X-User-Id") String userId,
+            @RequestBody ChangePasswordRequest request){
+
+        authService.changePassword(userId, request.currentPassword(), request.newPassword(), request.logoutEverywhere());
+        return ResponseEntity.ok("Password changed successfully");
+    }
+
+    public record DeleteAccountRequest(String currentPassword){}
+
+    @DeleteMapping
+    public ResponseEntity<String> deleteAccount(
+            @RequestHeader("X-User-Id") String userId,
+            @RequestBody DeleteAccountRequest request,
+            HttpServletResponse response){
+
+        authService.deleteAccount(userId, request.currentPassword());
+        response.addHeader(HttpHeaders.SET_COOKIE, buildRefreshCookie("", Duration.ZERO).toString());
+        return ResponseEntity.ok("Account deleted");
+    }
+
     @PostMapping("/refresh")
     public ResponseEntity<String> refresh(
             @CookieValue(name = "refreshToken", required = false) String refreshToken,
@@ -59,25 +94,6 @@ public class AuthController {
         }
         response.addHeader(HttpHeaders.SET_COOKIE, buildRefreshCookie("", Duration.ZERO).toString());
         return ResponseEntity.ok("logged out");
-    }
-
-    public record changeUsernameRequest(String username){}
-
-    @PatchMapping("/username")
-    public ResponseEntity<?> changeUsername(@RequestHeader("X-User-Id") String userId,
-                                                 @RequestBody changeUsernameRequest request){
-        String newAccessToken = authService.changeUsername(userId, request.username());
-        return ResponseEntity.ok(newAccessToken);
-    }
-
-    public record changeUserPasswordRequest(String currentPassword, String newPassword, boolean logoutEverywhere){}
-
-    @PatchMapping("/password")
-    public ResponseEntity<?> changeUserPassword(@RequestHeader("X-User-Id") String userId,
-                                                @RequestBody changeUserPasswordRequest request){
-
-        authService.changePassword(userId, request.currentPassword(), request.newPassword(),request.logoutEverywhere());
-        return ResponseEntity.ok("password changed successfully");
     }
 
     private ResponseCookie buildRefreshCookie(String value, Duration maxAge){
