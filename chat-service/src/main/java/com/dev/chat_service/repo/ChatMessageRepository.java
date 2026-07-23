@@ -8,4 +8,6 @@ public interface ChatMessageRepository extends MongoRepository<ChatMessageDocume
 
     List<ChatMessageDocument> findByPullrequestIdOrderByTimeStampAsc(String pullrequestId);
 
+    List<ChatMessageDocument> findBySenderId(String senderId);
+
 }
