@@ -22,4 +22,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     @Transactional
     Long deleteByOwnerEmailAndName(String ownerEmail, String name);
 
+    @Transactional
+    Long deleteByOwnerEmail(String ownerEmail);
+
 }

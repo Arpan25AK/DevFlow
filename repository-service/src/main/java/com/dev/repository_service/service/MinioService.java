@@ -134,6 +134,35 @@ public class MinioService {
         }
     }
 
+    public void deleteAllUserFiles(String ownerEmail){
+        try{
+            String prefix = ownerEmail + "/";
+
+            Iterable<Result<Item>> results = minioClient.listObjects(
+                    ListObjectsArgs.builder().
+                            bucket(bucketName).
+                            prefix(prefix).
+                            recursive(true)
+                    .build()
+            );
+
+            for(Result<Item> result : results){
+                Item item = result.get();
+
+                minioClient.removeObject(
+                        RemoveObjectArgs.builder()
+                                .bucket(bucketName)
+                                .object(item.objectName())
+                                .build()
+                );
+            }
+            log.info("all minio files for the user has been deleted");
+        }catch (Exception e){
+            log.error("failed to delete the files related to user");
+            throw new RuntimeException("Error purging files for user : {}" + ownerEmail);
+        }
+    }
+
     public void deleteSingleFile(String ownerEmail , String name, String fileName){
         try{
             String objectName = ownerEmail + "/" + name + "/" + fileName;
