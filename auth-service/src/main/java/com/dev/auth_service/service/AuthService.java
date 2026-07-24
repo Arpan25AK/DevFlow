@@ -12,6 +12,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -138,6 +139,7 @@ public class AuthService {
         }
     }
 
+    @Transactional
     public void deleteAccount(String userId, String currentPassword){
         User user = userRepository.findById(java.util.UUID.fromString(userId)).
                 orElseThrow(() -> new RuntimeException("user not found!"));
