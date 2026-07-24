@@ -11,8 +11,8 @@ import com.dev.auth_service.security.JwtUtill;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -25,15 +25,17 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final RepositoryServiceClient repositoryServiceClient;
     private final ChatServiceClient chatServiceClient;
+    private final MinioService minioService;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtill jwtUtill, RefreshTokenService refreshTokenService,
-                       RepositoryServiceClient repositoryServiceClient, ChatServiceClient chatServiceClient){
+                       RepositoryServiceClient repositoryServiceClient, ChatServiceClient chatServiceClient, MinioService minioService){
         this.jwtUtill = jwtUtill;
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
         this.refreshTokenService = refreshTokenService;
         this.repositoryServiceClient = repositoryServiceClient;
         this.chatServiceClient = chatServiceClient;
+        this.minioService = minioService;
     }
 
     public record LoginResponse(String accessToken, String refreshToken){}
@@ -139,7 +141,35 @@ public class AuthService {
         }
     }
 
-    @Transactional
+    public String uploadProfilePicture(String userId, MultipartFile file){
+        User user = userRepository.findById(java.util.UUID.fromString(userId)).
+                orElseThrow(() -> new RuntimeException("user not found"));
+
+        String objectName = minioService.uploadAvatar(userId, file);
+
+        user.setProfilePictureObject(objectName);
+        userRepository.save(user);
+
+        return "/api/auth/avatar/" + userId;
+    }
+
+    public String getAvatarObject(String userId){
+        User user = userRepository.findById(java.util.UUID.fromString(userId)).
+                orElseThrow(() -> new RuntimeException("user not found"));
+
+        return user.getProfilePictureObject();
+    }
+
+    public void deleteProfilePicture(String userId){
+        User user = userRepository.findById(java.util.UUID.fromString(userId)).
+                orElseThrow(() -> new RuntimeException("user not found"));
+
+        minioService.deleteAvatar(userId);
+
+        user.setProfilePictureObject(null);
+        userRepository.save(user);
+    }
+
     public void deleteAccount(String userId, String currentPassword){
         User user = userRepository.findById(java.util.UUID.fromString(userId)).
                 orElseThrow(() -> new RuntimeException("user not found!"));
@@ -163,6 +193,13 @@ public class AuthService {
         }catch (Exception e){
             log.error("failed to anonymize chat message for {} during account deletion ", username, e);
             throw new RuntimeException("failed to delete chat for the user");
+        }
+
+        try{
+            minioService.deleteAvatar(userId);
+        }catch (Exception e){
+            // non-fatal: an orphaned avatar object shouldn't block account deletion
+            log.warn("failed to purge avatar for {} during account deletion", username, e);
         }
 
         refreshTokenService.revokeAllTokens(user.getId());

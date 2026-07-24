@@ -1,12 +1,17 @@
 package com.dev.auth_service.controller;
 
 import com.dev.auth_service.service.AuthService;
+import com.dev.auth_service.service.MinioService;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Duration;
 
@@ -17,9 +22,11 @@ public class AuthController {
     public record AuthRequest(String email, String username, String password){}
 
     private final AuthService authService;
+    private final MinioService minioService;
 
-    public AuthController(AuthService authService){
+    public AuthController(AuthService authService, MinioService minioService){
         this.authService = authService;
+        this.minioService = minioService;
     }
 
     @PostMapping("/signup")
@@ -68,6 +75,36 @@ public class AuthController {
         authService.deleteAccount(userId, request.currentPassword());
         response.addHeader(HttpHeaders.SET_COOKIE, buildRefreshCookie("", Duration.ZERO).toString());
         return ResponseEntity.ok("Account deleted");
+    }
+
+    @PostMapping("/avatar")
+    public ResponseEntity<String> uploadAvatar(
+            @RequestHeader("X-User-Id") String userId,
+            @RequestParam("file") MultipartFile file){
+
+        String avatarUrl = authService.uploadProfilePicture(userId, file);
+        return ResponseEntity.ok(avatarUrl);
+    }
+
+    @GetMapping("/avatar/{userId}")
+    public ResponseEntity<InputStreamResource> getAvatar(@PathVariable String userId){
+        String objectName = authService.getAvatarObject(userId);
+        if(objectName == null){
+            return ResponseEntity.notFound().build();
+        }
+
+        MinioService.AvatarObject avatar = minioService.getAvatar(objectName);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(avatar.contentType()))
+                .cacheControl(CacheControl.maxAge(Duration.ofMinutes(10)))
+                .body(new InputStreamResource(avatar.stream()));
+    }
+
+    @DeleteMapping("/avatar")
+    public ResponseEntity<String> deleteAvatar(@RequestHeader("X-User-Id") String userId){
+        authService.deleteProfilePicture(userId);
+        return ResponseEntity.ok("Profile picture removed");
     }
 
     @PostMapping("/refresh")
