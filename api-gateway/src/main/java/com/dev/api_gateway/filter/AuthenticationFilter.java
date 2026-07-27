@@ -29,17 +29,24 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         }
 
         String path = request.getRequestURI();
+        String method = request.getMethod();
+
+        // 1. Allow completely public GET access to avatars without authentication
+        if ("GET".equalsIgnoreCase(method) && path.startsWith("/api/auth/avatar")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         boolean isPublicAuthEndpoint = path.equals("/api/auth/login") ||
                 path.equals("/api/auth/signup") ||
                 path.equals("/api/auth/refresh") ||
-                path.equals("/api/auth/logout") ||
-                path.startsWith("/api/auth/avatar");
+                path.equals("/api/auth/logout");
 
-        if (isPublicAuthEndpoint || path.startsWith("/api/chat")) {
-            // If it's an avatar request, we still want to ensure a valid token is present
-            // so users can't upload or overwrite other people's avatars maliciously.
-            if (path.startsWith("/api/auth/avatar") && !"GET".equalsIgnoreCase(request.getMethod())) {
+        // 2. For Avatar mutations (POST, DELETE) or other public auth endpoints / chat
+        if (isPublicAuthEndpoint || path.startsWith("/api/auth/avatar") || path.startsWith("/api/chat")) {
+
+            // If it's an avatar modification, enforce token validation
+            if (path.startsWith("/api/auth/avatar")) {
                 String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
                 if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                     sendErrorResponse(response, "Missing or invalid Authorization Header", HttpStatus.UNAUTHORIZED);
@@ -50,10 +57,11 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                     jwtUtil.validateToken(token);
                     String userId = jwtUtil.extractUserId(token);
 
-                    // For multipart requests, instead of wrapping the entire HttpServletRequest
-                    // which breaks stream parsing, you can pass the original request if
-                    // your downstream auth-service can also read the Authorization header directly.
-                    // (Auth-service already extracts the user ID from the Bearer token or X-User-Id header).
+                    // Pass along user ID if needed via header wrapper for mutations
+                    MutableHttpServletRequest mutableRequest = new MutableHttpServletRequest(request);
+                    mutableRequest.putHeader("X-User-Id", userId);
+                    filterChain.doFilter(mutableRequest, response);
+                    return;
                 } catch (io.jsonwebtoken.JwtException e) {
                     sendErrorResponse(response, "Unauthorized access: Invalid Token", HttpStatus.FORBIDDEN);
                     return;
