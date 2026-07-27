@@ -32,10 +32,34 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
         boolean isPublicAuthEndpoint = path.equals("/api/auth/login") ||
                 path.equals("/api/auth/signup") ||
-                path.equals("/api/auth/refresh")||
-                path.equals("/api/auth/logout");
+                path.equals("/api/auth/refresh") ||
+                path.equals("/api/auth/logout") ||
+                path.startsWith("/api/auth/avatar");
 
-        if ( isPublicAuthEndpoint || path.startsWith("/api/chat")) {
+        if (isPublicAuthEndpoint || path.startsWith("/api/chat")) {
+            // If it's an avatar request, we still want to ensure a valid token is present
+            // so users can't upload or overwrite other people's avatars maliciously.
+            if (path.startsWith("/api/auth/avatar") && !"GET".equalsIgnoreCase(request.getMethod())) {
+                String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+                if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                    sendErrorResponse(response, "Missing or invalid Authorization Header", HttpStatus.UNAUTHORIZED);
+                    return;
+                }
+                try {
+                    String token = authHeader.substring(7);
+                    jwtUtil.validateToken(token);
+                    String userId = jwtUtil.extractUserId(token);
+
+                    // For multipart requests, instead of wrapping the entire HttpServletRequest
+                    // which breaks stream parsing, you can pass the original request if
+                    // your downstream auth-service can also read the Authorization header directly.
+                    // (Auth-service already extracts the user ID from the Bearer token or X-User-Id header).
+                } catch (io.jsonwebtoken.JwtException e) {
+                    sendErrorResponse(response, "Unauthorized access: Invalid Token", HttpStatus.FORBIDDEN);
+                    return;
+                }
+            }
+
             filterChain.doFilter(request, response);
             return;
         }
